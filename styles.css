@@ -442,6 +442,42 @@ h1 {
     padding-left: 10px;
 }
 
+/* Update notification */
+.update-notification {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    background-color: #28a745;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.update-message {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.btn-small {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+}
+
+/* Version info */
+.version-info {
+    text-align: center;
+    margin-top: 20px;
+    padding: 10px;
+    color: #6c757d;
+    border-top: 1px solid #e9ecef;
+}
+
 .session-counter {
     display: none; /* Hide on mobile - not useful */
 }

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'workout-tracker-v5';
+const CACHE_NAME = 'workout-tracker-v6';
 const urlsToCache = [
   './',
   './index.html',
@@ -49,4 +49,11 @@ self.addEventListener('fetch', function(event) {
       }
     )
   );
+});
+
+// Handle messages from the main thread
+self.addEventListener('message', function(event) {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });

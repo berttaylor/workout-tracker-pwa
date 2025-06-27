@@ -2,20 +2,73 @@
 
 class WorkoutTracker {
     constructor() {
+        // Version information
+        this.APP_VERSION = '1.0.0';
+        this.DATA_VERSION = 1;
+        this.MIN_SUPPORTED_DATA_VERSION = 1;
+        
+        // App state
         this.sessionNumber = 1;
         this.exerciseStates = {};
         this.currentWorkout = null;
         this.workoutHistory = [];
         this.workoutLogs = [];
         this.sessionStates = {}; // Temporary states during current workout
+        this.updateAvailable = false;
         
         this.init();
     }
 
-    init() {
+    async init() {
+        // Check for app updates first
+        await this.checkForUpdates();
+        
+        // Load and migrate data if needed
         this.loadData();
+        
+        // Register service worker
         this.registerServiceWorker();
+        
+        // Initial render
         this.render();
+    }
+    
+    async checkForUpdates() {
+        try {
+            // Check if there's a service worker update available
+            if ('serviceWorker' in navigator) {
+                const registration = await navigator.serviceWorker.getRegistration();
+                if (registration) {
+                    await registration.update();
+                    
+                    // Check if there's a waiting service worker (new version)
+                    if (registration.waiting) {
+                        console.log('Update available!');
+                        this.updateAvailable = true;
+                    }
+                    
+                    // Listen for updates
+                    registration.addEventListener('updatefound', () => {
+                        console.log('Update found!');
+                        this.updateAvailable = true;
+                        this.render(); // Re-render to show update notification
+                    });
+                }
+            }
+        } catch (error) {
+            console.warn('Failed to check for updates:', error);
+        }
+    }
+    
+    applyUpdate() {
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistration().then(registration => {
+                if (registration && registration.waiting) {
+                    registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+                    window.location.reload();
+                }
+            });
+        }
     }
 
     // Configuration with your specific exercises
@@ -171,27 +224,147 @@ class WorkoutTracker {
     }
 
     loadData() {
-        // Load configuration
-        const configData = localStorage.getItem('workoutConfig');
-        this.config = configData ? JSON.parse(configData) : this.getDefaultConfig();
+        // Check and migrate data if needed
+        this.checkAndMigrateData();
         
-        // Load session data
-        const sessionData = localStorage.getItem('workoutSession');
-        if (sessionData) {
-            const session = JSON.parse(sessionData);
-            this.sessionNumber = session.sessionNumber || 1;
-            this.exerciseStates = session.exerciseStates || {};
+        // Load configuration with version info
+        this.loadVersionedConfig();
+        
+        // Load user state (current weights, reps, etc.)
+        this.loadUserState();
+        
+        // Load workout history (always preserve)
+        this.loadWorkoutHistory();
+        
+        // Load workout logs (always preserve)
+        this.loadWorkoutLogs();
+        
+        // Initialize any missing exercise states
+        this.initializeExerciseStates();
+    }
+    
+    checkAndMigrateData() {
+        const appVersion = localStorage.getItem('app_version');
+        const dataVersion = parseInt(localStorage.getItem('data_version') || '0');
+        
+        console.log(`Current app: ${this.APP_VERSION}, Data version: ${dataVersion}`);
+        
+        // Check if this is a first-time user
+        if (!appVersion && !dataVersion) {
+            console.log('First-time user, setting up fresh data');
+            this.setVersions();
+            return;
         }
-
-        // Load workout history
-        const historyData = localStorage.getItem('workoutHistory');
-        this.workoutHistory = historyData ? JSON.parse(historyData) : [];
         
-        // Load workout logs
-        const logsData = localStorage.getItem('workoutLogs');
+        // Check if data version is too old
+        if (dataVersion < this.MIN_SUPPORTED_DATA_VERSION) {
+            console.warn('Data version too old, resetting');
+            this.handleIncompatibleData();
+            return;
+        }
+        
+        // Perform migration if needed
+        if (dataVersion < this.DATA_VERSION) {
+            console.log(`Migrating data from version ${dataVersion} to ${this.DATA_VERSION}`);
+            this.migrateData(dataVersion, this.DATA_VERSION);
+        }
+        
+        // Update app version
+        this.setVersions();
+    }
+    
+    setVersions() {
+        localStorage.setItem('app_version', this.APP_VERSION);
+        localStorage.setItem('data_version', this.DATA_VERSION.toString());
+    }
+    
+    migrateData(fromVersion, toVersion) {
+        console.log(`Migrating data from v${fromVersion} to v${toVersion}`);
+        
+        // Future migration logic will go here
+        // For now, we're at v1, so no migrations needed
+        
+        // Example for future migrations:
+        // if (fromVersion < 2) {
+        //     this.migrateToV2();
+        // }
+        // if (fromVersion < 3) {
+        //     this.migrateToV3();
+        // }
+    }
+    
+    handleIncompatibleData() {
+        const backup = {
+            timestamp: new Date().toISOString(),
+            appVersion: localStorage.getItem('app_version'),
+            dataVersion: localStorage.getItem('data_version'),
+            allData: {}
+        };
+        
+        // Backup all localStorage data
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            backup.allData[key] = localStorage.getItem(key);
+        }
+        
+        // Store backup
+        localStorage.setItem('data_backup_incompatible', JSON.stringify(backup));
+        
+        // Clear incompatible data
+        localStorage.clear();
+        
+        // Set current versions
+        this.setVersions();
+        
+        alert('Your data was created with an incompatible version. A backup has been saved and the app has been reset to defaults.');
+    }
+    
+    loadVersionedConfig() {
+        const configData = localStorage.getItem('app_config');
+        if (configData) {
+            try {
+                const saved = JSON.parse(configData);
+                // Always use latest config but preserve user customizations if any
+                this.config = this.getDefaultConfig();
+                console.log('Using latest app config');
+            } catch (e) {
+                console.warn('Error loading config, using defaults:', e);
+                this.config = this.getDefaultConfig();
+            }
+        } else {
+            this.config = this.getDefaultConfig();
+        }
+    }
+    
+    loadUserState() {
+        const stateData = localStorage.getItem('user_state');
+        if (stateData) {
+            try {
+                const state = JSON.parse(stateData);
+                this.sessionNumber = state.sessionNumber || 1;
+                this.exerciseStates = state.exerciseStates || {};
+            } catch (e) {
+                console.warn('Error loading user state:', e);
+                this.sessionNumber = 1;
+                this.exerciseStates = {};
+            }
+        } else {
+            this.sessionNumber = 1;
+            this.exerciseStates = {};
+        }
+    }
+    
+    loadWorkoutHistory() {
+        const historyData = localStorage.getItem('workout_history');
+        this.workoutHistory = historyData ? JSON.parse(historyData) : [];
+    }
+    
+    loadWorkoutLogs() {
+        const logsData = localStorage.getItem('workout_logs');
         this.workoutLogs = logsData ? JSON.parse(logsData) : [];
-
-        // Initialize exercise states if not present
+    }
+    
+    initializeExerciseStates() {
         this.config.workouts.forEach(workout => {
             workout.exercises.forEach(exercise => {
                 if (!this.exerciseStates[exercise.name]) {
@@ -202,45 +375,56 @@ class WorkoutTracker {
                         lastSession: 0,
                         currentSet: 1,
                         completedSets: 0,
-                        progressionPhase: 'reps', // 'reps' or 'weight' for rep progression
+                        progressionPhase: 'reps',
                         previousWeight: exercise.startWeight,
                         previousReps: exercise.repRange[0],
-                        lastWeightIncrease: 0 // Track when weight was last increased
+                        lastWeightIncrease: 0
                     };
                 } else {
                     // Ensure new properties exist for existing exercises
-                    if (typeof this.exerciseStates[exercise.name].currentSet === 'undefined') {
-                        this.exerciseStates[exercise.name].currentSet = 1;
-                    }
-                    if (typeof this.exerciseStates[exercise.name].completedSets === 'undefined') {
-                        this.exerciseStates[exercise.name].completedSets = 0;
-                    }
-                    if (typeof this.exerciseStates[exercise.name].progressionPhase === 'undefined') {
-                        this.exerciseStates[exercise.name].progressionPhase = 'reps';
-                    }
-                    if (typeof this.exerciseStates[exercise.name].previousWeight === 'undefined') {
-                        this.exerciseStates[exercise.name].previousWeight = this.exerciseStates[exercise.name].currentWeight;
-                    }
-                    if (typeof this.exerciseStates[exercise.name].previousReps === 'undefined') {
-                        this.exerciseStates[exercise.name].previousReps = this.exerciseStates[exercise.name].targetReps;
-                    }
-                    if (typeof this.exerciseStates[exercise.name].lastWeightIncrease === 'undefined') {
-                        this.exerciseStates[exercise.name].lastWeightIncrease = 0;
-                    }
+                    this.ensureExerciseProperties(exercise.name);
                 }
             });
         });
     }
+    
+    ensureExerciseProperties(exerciseName) {
+        const state = this.exerciseStates[exerciseName];
+        if (!state) return;
+        
+        // Add any missing properties with defaults
+        const defaults = {
+            currentSet: 1,
+            completedSets: 0,
+            progressionPhase: 'reps',
+            previousWeight: state.currentWeight,
+            previousReps: state.targetReps,
+            lastWeightIncrease: 0
+        };
+        
+        Object.keys(defaults).forEach(key => {
+            if (typeof state[key] === 'undefined') {
+                state[key] = defaults[key];
+            }
+        });
+    }
 
     saveData() {
-        const sessionData = {
+        // Save user state (current weights, session number, etc.)
+        const userState = {
             sessionNumber: this.sessionNumber,
             exerciseStates: this.exerciseStates
         };
-        localStorage.setItem('workoutSession', JSON.stringify(sessionData));
-        localStorage.setItem('workoutConfig', JSON.stringify(this.config));
-        localStorage.setItem('workoutHistory', JSON.stringify(this.workoutHistory));
-        localStorage.setItem('workoutLogs', JSON.stringify(this.workoutLogs));
+        localStorage.setItem('user_state', JSON.stringify(userState));
+        
+        // Save app config (can be updated with app versions)
+        localStorage.setItem('app_config', JSON.stringify(this.config));
+        
+        // Save workout history (always preserve)
+        localStorage.setItem('workout_history', JSON.stringify(this.workoutHistory));
+        
+        // Save workout logs (always preserve)
+        localStorage.setItem('workout_logs', JSON.stringify(this.workoutLogs));
     }
 
     registerServiceWorker() {
@@ -496,17 +680,55 @@ class WorkoutTracker {
         
         let html = `
             <div class="container">
+                ${this.renderUpdateNotification()}
                 <div class="session-counter">S${this.sessionNumber}</div>
                 
                 ${this.renderWorkoutSelection()}
                 ${this.renderCurrentWorkout()}
                 ${this.renderQueuesInfo()}
                 ${this.currentWorkout ? '' : this.renderExportSection()}
+                ${this.renderVersionInfo()}
             </div>
         `;
         
         app.innerHTML = html;
         this.attachEventListeners();
+    }
+    
+    renderUpdateNotification() {
+        if (!this.updateAvailable) return '';
+        
+        return `
+            <div class="update-notification">
+                <div class="update-message">
+                    🔄 New version available!
+                    <button class="btn btn-primary btn-small" onclick="tracker.applyUpdate()">
+                        Update Now
+                    </button>
+                    <button class="btn btn-secondary btn-small" onclick="tracker.dismissUpdate()">
+                        Later
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+    
+    renderVersionInfo() {
+        if (this.currentWorkout) return ''; // Only show on homepage
+        
+        const appVersion = localStorage.getItem('app_version') || 'Unknown';
+        const dataVersion = localStorage.getItem('data_version') || 'Unknown';
+        
+        return `
+            <div class="version-info">
+                <small>App v${appVersion} • Data v${dataVersion}</small>
+            </div>
+        `;
+    }
+    
+    dismissUpdate() {
+        this.updateAvailable = false;
+        this.render();
     }
 
     renderWorkoutLogs() {
