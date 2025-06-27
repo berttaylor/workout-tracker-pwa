@@ -535,18 +535,22 @@ h1 {
     }
     
     .log-header {
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        align-items: center !important;
         gap: 8px;
+        flex-wrap: nowrap !important;
     }
     
     .log-date {
         font-size: 0.9rem;
+        flex-shrink: 0;
     }
     
     .log-workout {
         font-size: 0.8rem;
+        flex-shrink: 0;
+        white-space: nowrap;
     }
     
     .log-change {
