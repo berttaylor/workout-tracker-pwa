@@ -1,4 +1,4 @@
-const CACHE_NAME = 'workout-tracker-v1';
+const CACHE_NAME = 'workout-tracker-v2';
 const urlsToCache = [
   './',
   './index.html',
@@ -8,11 +8,33 @@ const urlsToCache = [
 ];
 
 self.addEventListener('install', function(event) {
+  // Skip waiting to activate new service worker immediately
+  self.skipWaiting();
+  
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(function(cache) {
         return cache.addAll(urlsToCache);
       })
+  );
+});
+
+self.addEventListener('activate', function(event) {
+  // Take control of all clients immediately
+  event.waitUntil(
+    Promise.all([
+      self.clients.claim(),
+      // Delete old caches
+      caches.keys().then(function(cacheNames) {
+        return Promise.all(
+          cacheNames.map(function(cacheName) {
+            if (cacheName !== CACHE_NAME) {
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      })
+    ])
   );
 });
 
