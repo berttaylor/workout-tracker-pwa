@@ -1,0 +1,22 @@
+{
+  "name": "Workout Tracker",
+  "short_name": "Workout",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3498db",
+  "description": "A progressive web app for tracking workouts with double progression.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3e%3crect width='192' height='192' fill='%233498db'/%3e%3ctext x='96' y='120' text-anchor='middle' font-size='80' fill='white' font-family='Arial'%3eW%3c/text%3e%3c/svg%3e",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3e%3crect width='512' height='512' fill='%233498db'/%3e%3ctext x='256' y='320' text-anchor='middle' font-size='200' fill='white' font-family='Arial'%3eW%3c/text%3e%3c/svg%3e",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
