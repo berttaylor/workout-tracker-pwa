@@ -442,38 +442,112 @@ h1 {
 }
 
 .session-counter {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background-color: #3498db;
-    color: white;
-    padding: 10px;
-    border-radius: 50%;
-    font-weight: bold;
-    z-index: 1000;
+    display: none; /* Hide on mobile - not useful */
 }
 
 @media (max-width: 480px) {
     .container {
         padding: 10px;
+        max-width: 100%;
+    }
+    
+    .workout-section {
+        margin-bottom: 20px;
+        padding: 15px;
     }
     
     .workout-header {
         flex-direction: column;
         align-items: flex-start;
-        gap: 10px;
+        gap: 15px;
     }
     
-    .workout-stats {
-        flex-wrap: wrap;
+    .workout-name {
+        font-size: 1.3rem;
     }
     
-    .actions {
-        flex-direction: column;
+    .exercise {
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .exercise-header {
+        margin-bottom: 12px;
+        padding-bottom: 10px;
+    }
+    
+    .exercise-name {
+        font-size: 1rem;
+        line-height: 1.2;
+    }
+    
+    .exercise-status {
+        font-size: 0.8rem;
+        padding: 4px 8px;
+        min-width: 60px;
+    }
+    
+    .exercise-metrics {
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+    
+    .metric-label {
+        font-size: 0.7rem;
+        margin-bottom: 3px;
+    }
+    
+    .metric-value {
+        font-size: 1rem;
+    }
+    
+    .exercise-actions {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
     }
     
     .btn {
+        padding: 10px 12px;
+        font-size: 0.85rem;
+        border-radius: 6px;
+    }
+    
+    .workout-footer .btn {
+        font-size: 1rem;
+        padding: 14px;
+    }
+    
+    .actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .actions .btn {
         width: 100%;
-        text-align: center;
+    }
+    
+    .export-section {
+        padding: 15px;
+    }
+    
+    .log-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .log-date {
+        font-size: 0.9rem;
+    }
+    
+    .log-workout {
+        font-size: 0.8rem;
+    }
+    
+    .log-change {
+        font-size: 0.85rem;
+        padding-left: 5px;
     }
 }
