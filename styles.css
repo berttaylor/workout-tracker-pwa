@@ -201,6 +201,26 @@ h1 {
     font-weight: bold;
 }
 
+.set-info {
+    color: #3498db;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.exercise-complete {
+    background-color: #d4edda;
+    border-left-color: #27ae60;
+}
+
+.completion-message {
+    color: #27ae60;
+    font-weight: bold;
+    text-align: center;
+    padding: 10px;
+    background-color: #d4edda;
+    border-radius: 4px;
+}
+
 .session-counter {
     position: fixed;
     top: 20px;

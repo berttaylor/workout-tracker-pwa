@@ -30,42 +30,48 @@ class WorkoutTracker {
                             startWeight: 30,
                             repRange: [5, 10],
                             increment: 2.5,
-                            unit: "kg"
+                            unit: "kg",
+                            sets: 5
                         },
                         {
                             name: "Pectoral machine",
                             startWeight: 40,
                             repRange: [5, 8],
                             increment: 2.5,
-                            unit: "kg"
+                            unit: "kg",
+                            sets: 5
                         },
                         {
                             name: "Chest incline",
                             startWeight: 40,
                             repRange: [5, 8],
                             increment: 2.5,
-                            unit: "kg"
+                            unit: "kg",
+                            sets: 5
                         },
                         {
                             name: "Tricep pulldowns",
                             startWeight: 20,
                             repRange: [5, 8],
                             increment: 2.5,
-                            unit: "kg"
+                            unit: "kg",
+                            sets: 5
                         },
                         {
                             name: "Calf raises",
                             startWeight: 7.5,
                             repRange: [8, 10],
                             increment: 2.5,
-                            unit: "kg"
+                            unit: "kg",
+                            sets: 5
                         },
                         {
                             name: "Cross trainer",
                             startWeight: 10,
                             repRange: [10, 15],
                             increment: 1,
-                            unit: "m"
+                            unit: "m",
+                            sets: 1
                         }
                     ]
                 },
@@ -77,42 +83,48 @@ class WorkoutTracker {
                             startWeight: 50,
                             repRange: [5, 8],
                             increment: 2.5,
-                            unit: "kg"
+                            unit: "kg",
+                            sets: 5
                         },
                         {
                             name: "Seated row",
                             startWeight: 50,
                             repRange: [5, 8],
                             increment: 2.5,
-                            unit: "kg"
+                            unit: "kg",
+                            sets: 5
                         },
                         {
                             name: "Upper back machine",
                             startWeight: 30,
                             repRange: [5, 8],
                             increment: 2.5,
-                            unit: "kg"
+                            unit: "kg",
+                            sets: 5
                         },
                         {
                             name: "Biceps on cable",
                             startWeight: 25,
                             repRange: [5, 6],
                             increment: 2.5,
-                            unit: "kg"
+                            unit: "kg",
+                            sets: 5
                         },
                         {
                             name: "Hip abduction machine",
                             startWeight: 89,
                             repRange: [5, 8],
                             increment: 2.5,
-                            unit: "kg"
+                            unit: "kg",
+                            sets: 5
                         },
                         {
                             name: "Cross trainer",
                             startWeight: 10,
                             repRange: [10, 15],
                             increment: 1,
-                            unit: "m"
+                            unit: "m",
+                            sets: 1
                         }
                     ]
                 },
@@ -124,7 +136,8 @@ class WorkoutTracker {
                             startWeight: 60,
                             repRange: [60, 90],
                             increment: 5,
-                            unit: "m"
+                            unit: "m",
+                            sets: 1
                         }
                     ]
                 }
@@ -159,8 +172,18 @@ class WorkoutTracker {
                         currentWeight: exercise.startWeight,
                         targetReps: exercise.repRange[0],
                         failCount: 0,
-                        lastSession: 0
+                        lastSession: 0,
+                        currentSet: 1,
+                        completedSets: 0
                     };
+                } else {
+                    // Ensure new properties exist for existing exercises
+                    if (typeof this.exerciseStates[exercise.name].currentSet === 'undefined') {
+                        this.exerciseStates[exercise.name].currentSet = 1;
+                    }
+                    if (typeof this.exerciseStates[exercise.name].completedSets === 'undefined') {
+                        this.exerciseStates[exercise.name].completedSets = 0;
+                    }
                 }
                 // Set initial fail count for Shoulder press based on your current status
                 if (exercise.name === "Shoulder press" && this.exerciseStates[exercise.name].failCount === 0 && this.sessionNumber === 1) {
@@ -194,63 +217,87 @@ class WorkoutTracker {
         }
     }
 
-    // Core double progression logic
-    handleSuccess(exerciseName) {
+    // Set completion logic
+    completeSet(exerciseName) {
         const state = this.exerciseStates[exerciseName];
         const exercise = this.findExercise(exerciseName);
         
-        // Log workout result
-        this.logWorkoutResult(exerciseName, 'success', state.currentWeight, state.targetReps);
+        // Log set completion
+        this.logWorkoutResult(exerciseName, 'set_complete', state.currentWeight, state.targetReps);
         
-        // Reset fail count on success
-        state.failCount = 0;
-        state.lastSession = this.sessionNumber;
-
-        // Check if exercise is already in queues for this session
-        const alreadyInRepsQueue = this.repsQueue.includes(exerciseName);
-        const alreadyInWeightQueue = this.weightQueue.includes(exerciseName);
-
-        if (alreadyInRepsQueue || alreadyInWeightQueue) {
-            // Already processed this session, no action
-            return;
-        }
-
-        // Add to reps queue first
-        if (state.targetReps < exercise.repRange[1]) {
-            this.repsQueue.push(exerciseName);
+        state.completedSets++;
+        
+        // If all sets completed, handle exercise success
+        if (state.completedSets >= exercise.sets) {
+            this.handleExerciseComplete(exerciseName, true);
         } else {
-            // At max reps, go to weight queue
-            this.weightQueue.push(exerciseName);
+            // Move to next set
+            state.currentSet++;
         }
-
+        
         this.saveData();
         this.render();
     }
-
-    handleFailure(exerciseName) {
+    
+    failSet(exerciseName) {
         const state = this.exerciseStates[exerciseName];
         const exercise = this.findExercise(exerciseName);
         
-        // Log workout result
-        this.logWorkoutResult(exerciseName, 'failure', state.currentWeight, state.targetReps);
+        // Log set failure
+        this.logWorkoutResult(exerciseName, 'set_failed', state.currentWeight, state.targetReps);
         
-        state.failCount++;
-        state.lastSession = this.sessionNumber;
-
-        // Remove from any queues
-        this.repsQueue = this.repsQueue.filter(name => name !== exerciseName);
-        this.weightQueue = this.weightQueue.filter(name => name !== exerciseName);
-
-        // Deload after 2 consecutive failures
-        if (state.failCount >= 2) {
-            const deloadAmount = exercise.increment * 2; // 10% deload approximation
-            state.currentWeight = Math.max(exercise.startWeight, state.currentWeight - deloadAmount);
-            state.targetReps = exercise.repRange[0]; // Reset to minimum reps
-            state.failCount = 0; // Reset fail count after deload
-        }
-
+        // Mark exercise as failed for this session
+        this.handleExerciseComplete(exerciseName, false);
+        
         this.saveData();
         this.render();
+    }
+    
+    handleExerciseComplete(exerciseName, success) {
+        const state = this.exerciseStates[exerciseName];
+        const exercise = this.findExercise(exerciseName);
+        
+        // Reset sets for next workout
+        state.currentSet = 1;
+        state.completedSets = 0;
+        state.lastSession = this.sessionNumber;
+        
+        if (success) {
+            // Reset fail count on success
+            state.failCount = 0;
+            
+            // Check if exercise is already in queues for this session
+            const alreadyInRepsQueue = this.repsQueue.includes(exerciseName);
+            const alreadyInWeightQueue = this.weightQueue.includes(exerciseName);
+
+            if (alreadyInRepsQueue || alreadyInWeightQueue) {
+                // Already processed this session, no action
+                return;
+            }
+
+            // Add to reps queue first
+            if (state.targetReps < exercise.repRange[1]) {
+                this.repsQueue.push(exerciseName);
+            } else {
+                // At max reps, go to weight queue
+                this.weightQueue.push(exerciseName);
+            }
+        } else {
+            // Handle failure
+            state.failCount++;
+            
+            // Remove from any queues
+            this.repsQueue = this.repsQueue.filter(name => name !== exerciseName);
+            this.weightQueue = this.weightQueue.filter(name => name !== exerciseName);
+
+            // Deload after 2 consecutive failures
+            if (state.failCount >= 2) {
+                const deloadAmount = exercise.increment * 2; // 10% deload approximation
+                state.currentWeight = Math.max(exercise.startWeight, state.currentWeight - deloadAmount);
+                state.targetReps = exercise.repRange[0]; // Reset to minimum reps
+                state.failCount = 0; // Reset fail count after deload
+            }
+        }
     }
 
     // Process queues (called at start of new workout)
@@ -298,6 +345,17 @@ class WorkoutTracker {
         this.currentWorkout = this.config.workouts.find(w => w.name === workoutName);
         this.sessionNumber++;
         this.processQueues();
+        
+        // Reset sets for all exercises in this workout
+        this.currentWorkout.exercises.forEach(exercise => {
+            const state = this.exerciseStates[exercise.name];
+            if (state) {
+                state.currentSet = 1;
+                state.completedSets = 0;
+            }
+        });
+        
+        this.saveData();
         this.render();
     }
 
@@ -399,9 +457,12 @@ class WorkoutTracker {
         if (inRepsQueue) exerciseState = 'In Reps Queue';
         if (inWeightQueue) exerciseState = 'In Weight Queue';
         if (state.failCount > 0) exerciseState = `Failed ${state.failCount}x`;
+        if (state.completedSets >= exercise.sets) exerciseState = 'Complete';
+        
+        const isComplete = state.completedSets >= exercise.sets;
         
         return `
-            <div class="exercise">
+            <div class="exercise ${isComplete ? 'exercise-complete' : ''}">
                 <div class="exercise-header">
                     <div class="exercise-name">${exercise.name}</div>
                     <div class="exercise-state">${exerciseState}</div>
@@ -410,16 +471,21 @@ class WorkoutTracker {
                 <div class="exercise-info">
                     <div class="current-weight">${state.currentWeight}${exercise.unit || 'kg'}</div>
                     <div class="target-reps">${state.targetReps} reps</div>
+                    <div class="set-info">Set ${state.currentSet}/${exercise.sets}</div>
                     ${state.failCount > 0 ? `<div class="fail-count">Fails: ${state.failCount}</div>` : ''}
                 </div>
                 
                 <div class="actions">
-                    <button class="btn btn-success" onclick="tracker.handleSuccess('${exercise.name}')">
-                        Success
-                    </button>
-                    <button class="btn btn-danger" onclick="tracker.handleFailure('${exercise.name}')">
-                        Fail
-                    </button>
+                    ${!isComplete ? `
+                        <button class="btn btn-success" onclick="tracker.completeSet('${exercise.name}')">
+                            Complete Set
+                        </button>
+                        <button class="btn btn-danger" onclick="tracker.failSet('${exercise.name}')">
+                            Fail Exercise
+                        </button>
+                    ` : `
+                        <div class="completion-message">✓ Exercise Complete</div>
+                    `}
                 </div>
             </div>
         `;
