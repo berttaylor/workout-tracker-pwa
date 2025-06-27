@@ -23,7 +23,7 @@ class WorkoutTracker {
         return {
             workouts: [
                 {
-                    name: "Workout A",
+                    name: "Push + Calfs",
                     exercises: [
                         {
                             name: "Shoulder press",
@@ -87,7 +87,7 @@ class WorkoutTracker {
                     ]
                 },
                 {
-                    name: "Workout B",
+                    name: "Pull + Glutes",
                     exercises: [
                         {
                             name: "Vertical traction machine",

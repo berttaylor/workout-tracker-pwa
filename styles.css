@@ -273,6 +273,7 @@ h1 {
     transition: all 0.2s ease;
     text-align: center;
     letter-spacing: 0.3px;
+    touch-action: manipulation; /* Prevents iOS zoom on double-tap */
 }
 
 .btn:hover {
@@ -457,9 +458,10 @@ h1 {
     }
     
     .workout-header {
-        flex-direction: column;
-        align-items: flex-start;
+        flex-direction: row;
+        align-items: center;
         gap: 15px;
+        flex-wrap: wrap;
     }
     
     .workout-name {
