@@ -1172,3 +1172,52 @@ body.dark-mode .edit-workout-actions {
     background-color: #3a1a1a;
     border-color: #663333;
 }
+
+/* Workout edit header buttons */
+.workout-edit-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.workout-edit-buttons .btn {
+    white-space: nowrap;
+}
+
+/* Exercise controls for ordering */
+.exercise-controls {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+body.dark-mode .exercise-controls .btn-small {
+    background-color: #555555;
+    border-color: #666666;
+    color: #e0e0e0;
+}
+
+body.dark-mode .exercise-controls .btn-danger {
+    background-color: #dc3545;
+    color: white;
+}
+
+/* Responsive adjustments for edit mode */
+@media (max-width: 480px) {
+    .workout-edit-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .workout-edit-buttons .btn {
+        width: 100%;
+    }
+    
+    .exercise-edit-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .exercise-controls {
+        flex-wrap: wrap;
+    }
+}
