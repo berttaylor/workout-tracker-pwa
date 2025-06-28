@@ -71,6 +71,34 @@ h1 {
     max-width: 200px;
 }
 
+.progression-selector {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: white;
+    color: #666;
+    cursor: pointer;
+    margin-top: 4px;
+    font-weight: 600;
+}
+
+.incomplete-workout-notice {
+    background-color: #fff3cd;
+    border-left: 4px solid #ffc107;
+    margin-bottom: 20px;
+}
+
+.incomplete-workout-notice h3 {
+    color: #856404;
+    margin-bottom: 8px;
+}
+
+.incomplete-workout-notice p {
+    color: #856404;
+    margin-bottom: 15px;
+}
+
 .workout-section {
     margin-bottom: 30px;
     padding: 20px;
@@ -770,4 +798,20 @@ body.dark-mode .workout-footer {
 body.dark-mode .app-footer {
     color: #b0b0b0;
     border-top-color: #555555;
+}
+
+body.dark-mode .progression-selector {
+    background-color: #444444;
+    border-color: #666666;
+    color: #e0e0e0;
+}
+
+body.dark-mode .incomplete-workout-notice {
+    background-color: #3a3a3a;
+    border-left-color: #ffca28;
+}
+
+body.dark-mode .incomplete-workout-notice h3,
+body.dark-mode .incomplete-workout-notice p {
+    color: #ffca28;
 }

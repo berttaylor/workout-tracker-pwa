@@ -465,6 +465,22 @@ class WorkoutTracker {
         this.render();
     }
     
+setProgressionType(exerciseName, type) {
+        const state = this.exerciseStates[exerciseName];
+        const exercise = this.findExercise(exerciseName);
+
+        if (exercise.progressionType !== type) {
+            // If changing to non-rep based progression, reset reps to baseline
+            if (type !== 'rep') {
+                state.targetReps = exercise.repRange[0];
+            }
+
+            exercise.progressionType = type;
+        }
+
+        this.render();
+    }
+
     failSet(exerciseName) {
         if (!this.sessionStates[exerciseName]) {
             this.sessionStates[exerciseName] = { status: 'pending', completedSets: 0, currentSet: 1 };
@@ -740,7 +756,7 @@ class WorkoutTracker {
                     ${document.body.classList.contains('dark-mode') ? '☀️' : '🌙'}
                 </button>
             </div>
-            <h1>Workout Tracker</h1>
+<h1>Progress³ Workout Tracker</h1>
         `;
     }
     
@@ -796,7 +812,10 @@ class WorkoutTracker {
     renderWorkoutSelection() {
         if (this.currentWorkout) return '';
         
+        const incompleteWorkout = this.loadIncompleteWorkout();
+        
         return `
+            ${incompleteWorkout ? this.renderIncompleteWorkoutNotice(incompleteWorkout) : ''}
             <div class="workout-section">
                 <h2>Select Workout</h2>
                 <div class="actions">
@@ -809,6 +828,41 @@ class WorkoutTracker {
             </div>
             ${this.renderWorkoutLogs()}
         `;
+    }
+    
+    renderIncompleteWorkoutNotice(incomplete) {
+        const timeAgo = this.getTimeAgo(new Date(incomplete.timestamp));
+        const completedCount = Object.values(incomplete.sessionStates).filter(state => 
+            state.status === 'completed' || state.completedSets > 0
+        ).length;
+        
+        return `
+            <div class="workout-section incomplete-workout-notice">
+                <h3>⚠️ Incomplete Workout</h3>
+                <p><strong>${incomplete.workoutName}</strong> - ${completedCount} exercises started ${timeAgo}</p>
+                <div class="actions">
+                    <button class="btn btn-primary" onclick="tracker.resumeIncompleteWorkout()">
+                        Resume Workout
+                    </button>
+                    <button class="btn btn-secondary" onclick="tracker.discardIncompleteWorkout()">
+                        Discard
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+    
+    getTimeAgo(date) {
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / (1000 * 60));
+        const diffHours = Math.floor(diffMins / 60);
+        
+        if (diffMins < 1) return 'just now';
+        if (diffMins < 60) return `${diffMins}m ago`;
+        if (diffHours < 24) return `${diffHours}h ago`;
+        return `${Math.floor(diffHours / 24)}d ago`;
+    }
     }
 
     renderCurrentWorkout() {
@@ -887,16 +941,23 @@ class WorkoutTracker {
                 break;
         }
         
-        // Determine exercise status - show progression type instead of fail count
+        // Always show progression type, even when complete
         let statusInfo = {
             text: progressionInfo.type,
             class: 'status-progression'
         };
         
+        // Add completion indicator alongside progression type
         if (exerciseStatus === 'completed') {
-            statusInfo = { text: 'Complete', class: 'status-complete' };
+            statusInfo = { 
+                text: `${progressionInfo.type} ✓`, 
+                class: 'status-complete' 
+            };
         } else if (exerciseStatus === 'failed') {
-            statusInfo = { text: 'Failed', class: 'status-failed' };
+            statusInfo = { 
+                text: `${progressionInfo.type} ✗`, 
+                class: 'status-failed' 
+            };
         }
         
         // Show if this is a new weight (only on first attempt at this weight)
@@ -910,6 +971,11 @@ class WorkoutTracker {
                 <div class="exercise-header">
                     <div class="exercise-title">
                         <div class="exercise-name">${exercise.name}</div>
+                        <select class="progression-selector" onchange="tracker.setProgressionType('${exercise.name}', this.value)">
+                            <option value="rep" ${exercise.progressionType === 'rep' ? 'selected' : ''}>Rep+</option>
+                            <option value="simple" ${exercise.progressionType === 'simple' ? 'selected' : ''}>Basic</option>
+                            <option value="none" ${exercise.progressionType === 'none' ? 'selected' : ''}>Static</option>
+                        </select>
                     </div>
                     <div class="exercise-status ${statusInfo.class}">${statusInfo.text}</div>
                 </div>
@@ -974,10 +1040,49 @@ class WorkoutTracker {
     }
 
     backToHome() {
-        // Just go back to homepage without ending workout
+        // Save incomplete workout state if any progress was made
+        if (this.hasWorkoutProgress()) {
+            this.saveIncompleteWorkout();
+        }
+        
+        // Go back to homepage
         this.currentWorkout = null;
-        // Clear session states since we're abandoning the workout
-        this.sessionStates = {};
+        this.render();
+    }
+    
+    hasWorkoutProgress() {
+        return Object.keys(this.sessionStates).length > 0 && 
+               Object.values(this.sessionStates).some(state => 
+                   state.completedSets > 0 || state.status !== 'pending'
+               );
+    }
+    
+    saveIncompleteWorkout() {
+        const incompleteWorkout = {
+            workoutName: this.currentWorkout.name,
+            sessionStates: { ...this.sessionStates },
+            timestamp: new Date().toISOString()
+        };
+        localStorage.setItem('incompleteWorkout', JSON.stringify(incompleteWorkout));
+    }
+    
+    loadIncompleteWorkout() {
+        const saved = localStorage.getItem('incompleteWorkout');
+        return saved ? JSON.parse(saved) : null;
+    }
+    
+    resumeIncompleteWorkout() {
+        const incomplete = this.loadIncompleteWorkout();
+        if (incomplete) {
+            this.currentWorkout = this.config.workouts.find(w => w.name === incomplete.workoutName);
+            this.sessionStates = incomplete.sessionStates;
+            localStorage.removeItem('incompleteWorkout');
+            this.render();
+        }
+    }
+    
+    discardIncompleteWorkout() {
+        localStorage.removeItem('incompleteWorkout');
         this.render();
     }
     
@@ -1002,6 +1107,9 @@ class WorkoutTracker {
                 return; // Don't end workout if user cancels
             }
         }
+        
+        // Clear any saved incomplete workout since we're ending properly
+        localStorage.removeItem('incompleteWorkout');
         
         // Apply all progression changes
         this.applyWorkoutProgression();
