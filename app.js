@@ -8,7 +8,7 @@ class WorkoutTracker {
         this.MIN_SUPPORTED_DATA_VERSION = 1;
         
         // Build timestamp for cache busting
-        this.BUILD_TIMESTAMP = '2025-06-28-18-04';
+        this.BUILD_TIMESTAMP = '2025-06-28-21-23';
         this.LAST_UPDATE_CHECK = null;
         
         // App state
@@ -277,6 +277,9 @@ class WorkoutTracker {
         
         // Initialize any missing exercise states
         this.initializeExerciseStates();
+        
+        // Check if intro questionnaire is needed for new users
+        this.checkIntroQuestionnaire();
     }
     
     checkAndMigrateData() {
@@ -1335,6 +1338,10 @@ setProgressionType(exerciseName, type) {
         // Mark workout as inactive instead of deleting
         workout.active = false;
         
+        // Exit edit mode and return to home
+        this.editMode = false;
+        this.editingWorkout = null;
+        
         this.saveData();
         this.render();
     }
@@ -1609,6 +1616,27 @@ setProgressionType(exerciseName, type) {
                 </div>
             </div>
         `;
+    }
+    
+    checkIntroQuestionnaire() {
+        // Check if this is truly a new user (no workouts at all)
+        const hasWorkouts = this.config.workouts && this.config.workouts.some(w => w.active !== false);
+        
+        if (!hasWorkouts) {
+            setTimeout(() => {
+                const addProgram = confirm('Add program?\n\nChoose OK for Push/Pull/Legs split, or Cancel to build from scratch.\n\n(Note: Workouts can be edited at any time.)');
+                if (addProgram) {
+                    // Use default configuration
+                    this.config = this.getDefaultConfig();
+                } else {
+                    // Start with an empty configuration
+                    this.config = { workouts: [] };
+                }
+                
+                this.saveData();
+                this.render();
+            }, 500); // Small delay to ensure UI is ready
+        }
     }
     
     attachEventListeners() {
