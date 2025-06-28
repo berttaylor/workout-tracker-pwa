@@ -8,7 +8,7 @@ class WorkoutTracker {
         this.MIN_SUPPORTED_DATA_VERSION = 1;
         
         // Build timestamp for cache busting
-        this.BUILD_TIMESTAMP = '2025-06-28-16-44';
+        this.BUILD_TIMESTAMP = '2025-06-28-16-46';
         this.LAST_UPDATE_CHECK = null;
         
         // App state

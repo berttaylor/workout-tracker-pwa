@@ -81,7 +81,8 @@ Deployed automatically via deploy.sh"
 # Commit and push changes to GitHub
 echo "📤 Committing and pushing to GitHub..."
 git add .
-git commit -m "$COMMIT_MSG"
+# Use printf to handle multi-line commit message properly
+printf "%s\n" "$COMMIT_MSG" | git commit -F -
 git push
 
 echo "✅ PWA Update Complete!"
