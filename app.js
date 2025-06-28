@@ -8,7 +8,7 @@ class WorkoutTracker {
         this.MIN_SUPPORTED_DATA_VERSION = 1;
         
         // Build timestamp for cache busting
-        this.BUILD_TIMESTAMP = '2025-06-28-22-24';
+        this.BUILD_TIMESTAMP = '2025-06-28-22-48';
         this.LAST_UPDATE_CHECK = null;
         
         // App state
@@ -1460,22 +1460,24 @@ setProgressionType(exerciseName, type) {
         this.render();
     }
     
-    editWorkoutName(workoutId) {
+    editWorkoutName(workoutId, newName) {
         const workout = this.config.workouts.find(w => w.id === workoutId);
         if (!workout) return;
         
-        const newName = prompt('Enter new workout name:', workout.name);
         if (!newName || newName.trim() === '' || newName === workout.name) return;
         
         // Check if new name already exists
         if (this.config.workouts.find(w => w.id !== workoutId && w.name.toLowerCase() === newName.toLowerCase())) {
             alert('A workout with this name already exists!');
+            this.render(); // Reset the input
             return;
         }
         
         workout.name = newName.trim();
-        this.saveData();
-        this.render();
+        // Also update the editing workout object if we're in edit mode
+        if (this.editingWorkout && this.editingWorkout.id === workoutId) {
+            this.editingWorkout.name = newName.trim();
+        }
     }
     
     addExerciseToWorkout(workoutId) {
@@ -1681,13 +1683,33 @@ setProgressionType(exerciseName, type) {
         
         this.editMode = true;
         this.editingWorkout = workout;
+        // Store original workout for change detection
+        this.originalWorkout = JSON.parse(JSON.stringify(workout));
         this.render();
     }
     
     exitEditMode() {
+        // Check for unsaved changes
+        if (this.hasUnsavedChanges()) {
+            if (!confirm('You have unsaved changes. Are you sure you want to go back? Your changes will be lost.')) {
+                return; // Don't exit if user cancels
+            }
+        }
+        
         this.editMode = false;
         this.editingWorkout = null;
+        this.originalWorkout = null;
         this.render();
+    }
+    
+    hasUnsavedChanges() {
+        if (!this.originalWorkout || !this.editingWorkout) return false;
+        
+        // Compare current state with original
+        const current = JSON.stringify(this.editingWorkout);
+        const original = JSON.stringify(this.originalWorkout);
+        
+        return current !== original;
     }
     
     saveAndStartWorkout(workoutId) {
@@ -1760,21 +1782,16 @@ setProgressionType(exerciseName, type) {
         
         return `
             <div class="workout-section">
-                <div class="workout-header">
-                    <div class="workout-name">Editing: ${workout.name}</div>
-                    <div class="workout-edit-buttons">
-                        <button class="btn btn-primary" onclick="tracker.saveAndReturnHome('${workout.id}')" title="Save changes">
-                            💾 Save
-                        </button>
-                        <button class="btn btn-secondary" onclick="tracker.exitEditMode()">← Back</button>
-                    </div>
-                </div>
-                
-                <div class="edit-workout-name-section">
-                    <h3>Workout Name</h3>
-                    <input type="text" class="workout-name-input" value="${workout.name}" 
+                <div class="workout-edit-header">
+                    <input type="text" class="workout-name workout-name-input" value="${workout.name}" 
                            onchange="tracker.editWorkoutName('${workout.id}', this.value)" 
                            placeholder="Enter workout name">
+                    <div class="workout-edit-buttons">
+                        <button class="btn btn-secondary" onclick="tracker.exitEditMode()">← Back</button>
+                        <button class="btn btn-primary" onclick="tracker.saveAndReturnHome('${workout.id}')" title="Save changes">
+                            Save
+                        </button>
+                    </div>
                 </div>
                 
                 <div class="edit-exercises-section">
@@ -1802,21 +1819,24 @@ setProgressionType(exerciseName, type) {
     renderEditableExercise(exercise, workoutId) {
         return `
             <div class="exercise edit-exercise">
-                <div class="exercise-header">
-                    <div class="exercise-controls">
-                        <button class="btn-small btn-secondary" onclick="tracker.moveExerciseUp('${workoutId}', '${exercise.id}')" title="Move up">
-                            ↑
-                        </button>
-                        <button class="btn-small btn-secondary" onclick="tracker.moveExerciseDown('${workoutId}', '${exercise.id}')" title="Move down">
-                            ↓
-                        </button>
-                    </div>
+                <div class="exercise-title-row">
                     <input type="text" class="exercise-name-input" value="${exercise.name}" 
                            onchange="tracker.editExerciseProperty('${exercise.id}', 'name', this.value)" 
                            placeholder="Exercise name">
-                    <button class="btn-small btn-danger" onclick="tracker.removeExercise('${workoutId}', '${exercise.id}')" title="Remove exercise">
-                        🗑️
-                    </button>
+                </div>
+                
+                <div class="exercise-controls-row">
+                    <div class="exercise-controls">
+                        <button class="btn-small" onclick="tracker.moveExerciseUp('${workoutId}', '${exercise.id}')" title="Move up">
+                            ↑
+                        </button>
+                        <button class="btn-small" onclick="tracker.moveExerciseDown('${workoutId}', '${exercise.id}')" title="Move down">
+                            ↓
+                        </button>
+                        <button class="btn-small btn-delete" onclick="tracker.removeExercise('${workoutId}', '${exercise.id}')" title="Remove exercise">
+                            ×
+                        </button>
+                    </div>
                 </div>
                 
                 <div class="exercise-edit-grid">
