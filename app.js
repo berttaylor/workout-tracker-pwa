@@ -8,7 +8,7 @@ class WorkoutTracker {
         this.MIN_SUPPORTED_DATA_VERSION = 1;
         
         // Build timestamp for cache busting
-        this.BUILD_TIMESTAMP = '2025-06-28-16-51';
+        this.BUILD_TIMESTAMP = '2025-06-28-16-54';
         this.LAST_UPDATE_CHECK = null;
         
         // App state
@@ -829,7 +829,6 @@ setProgressionType(exerciseName, type) {
         return `
             ${incompleteWorkout ? this.renderIncompleteWorkoutNotice(incompleteWorkout) : ''}
             <div class="workout-section">
-                <h2>Select Workout</h2>
                 <div class="actions">
                     ${this.config.workouts.map(workout => 
                         `<button class="btn btn-primary" onclick="tracker.startWorkout('${workout.name}')">

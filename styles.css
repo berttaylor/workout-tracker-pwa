@@ -802,7 +802,7 @@ body.dark-mode h1 {
 }
 
 body.dark-mode .progress-cubed {
-    color: #4fc3f7;
+    color: #ffca28;
 }
 
 body.dark-mode .workout-section {
@@ -837,7 +837,7 @@ body.dark-mode .increased-reps {
 }
 
 body.dark-mode .sets-value {
-    color: #29b6f6;
+    color: #81c784;
 }
 
 body.dark-mode .metric-label {
@@ -849,9 +849,9 @@ body.dark-mode .exercise-header {
 }
 
 body.dark-mode .status-progression {
-    background-color: #1e3a8a;
-    color: #93c5fd;
-    border-color: #3b82f6;
+    background-color: #3a3a3a;
+    color: #ffca28;
+    border-color: #666666;
 }
 
 body.dark-mode .status-complete {
@@ -1007,7 +1007,7 @@ body.dark-mode .progression-status-selector.status-failed {
 }
 
 body.dark-mode .progression-status-selector.status-progression {
-    background-color: #1e3a8a;
-    color: #93c5fd;
-    border-color: #3b82f6;
+    background-color: #3a3a3a;
+    color: #ffca28;
+    border-color: #666666;
 }
