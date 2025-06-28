@@ -8,7 +8,7 @@ class WorkoutTracker {
         this.MIN_SUPPORTED_DATA_VERSION = 1;
         
         // Build timestamp for cache busting
-        this.BUILD_TIMESTAMP = '2025-06-28-21-23';
+        this.BUILD_TIMESTAMP = '2025-06-28-21-24';
         this.LAST_UPDATE_CHECK = null;
         
         // App state
@@ -1428,7 +1428,83 @@ setProgressionType(exerciseName, type) {
         this.render();
     }
     
+    validateInput(exerciseId, property, newValue) {
+        let exercise = null;
+        
+        // Find the exercise
+        for (const workout of this.config.workouts) {
+            exercise = workout.exercises.find(e => e.id === exerciseId);
+            if (exercise) break;
+        }
+        
+        if (!exercise) return { valid: false, error: 'Exercise not found' };
+        
+        // Validate based on property type
+        switch (property) {
+            case 'name':
+                if (!newValue || newValue.trim() === '') {
+                    return { valid: false, error: 'Exercise name cannot be empty' };
+                }
+                if (newValue.length > 30) {
+                    return { valid: false, error: 'Exercise name must be under 30 characters' };
+                }
+                return { valid: true, value: newValue.trim() };
+                
+            case 'startWeight':
+            case 'minimumWeight':
+            case 'increment':
+                const numValue = parseFloat(newValue);
+                if (isNaN(numValue)) {
+                    return { valid: false, error: `Invalid value for ${exercise.name} - ${property}: "${newValue}"` };
+                }
+                if (numValue < 0) {
+                    return { valid: false, error: `${property} cannot be negative` };
+                }
+                return { valid: true, value: numValue };
+                
+            case 'sets':
+                const setsValue = parseInt(newValue);
+                if (isNaN(setsValue)) {
+                    return { valid: false, error: `Invalid value for ${exercise.name} - sets: "${newValue}"` };
+                }
+                if (setsValue < 1 || setsValue > 10) {
+                    return { valid: false, error: 'Sets must be between 1 and 10' };
+                }
+                return { valid: true, value: setsValue };
+                
+            case 'repRangeMin':
+                const minReps = parseInt(newValue);
+                if (isNaN(minReps)) {
+                    return { valid: false, error: `Invalid value for ${exercise.name} - minimum reps: "${newValue}"` };
+                }
+                if (minReps < 1 || minReps > exercise.repRange[1]) {
+                    return { valid: false, error: 'Minimum reps must be between 1 and maximum reps' };
+                }
+                return { valid: true, value: minReps };
+                
+            case 'repRangeMax':
+                const maxReps = parseInt(newValue);
+                if (isNaN(maxReps)) {
+                    return { valid: false, error: `Invalid value for ${exercise.name} - maximum reps: "${newValue}"` };
+                }
+                if (maxReps < exercise.repRange[0] || maxReps > 50) {
+                    return { valid: false, error: 'Maximum reps must be between minimum reps and 50' };
+                }
+                return { valid: true, value: maxReps };
+        }
+        
+        return { valid: false, error: 'Unknown property' };
+    }
+    
     editExerciseProperty(exerciseId, property, newValue) {
+        const validation = this.validateInput(exerciseId, property, newValue);
+        
+        if (!validation.valid) {
+            alert(validation.error);
+            this.render(); // Re-render to reset invalid input
+            return;
+        }
+        
         let exercise = null;
         
         // Find the exercise across all workouts
@@ -1439,14 +1515,12 @@ setProgressionType(exerciseName, type) {
         
         if (!exercise) return;
         
-        // Validate and convert values based on property type
+        // Apply validated value
         switch (property) {
             case 'name':
-                if (!newValue || newValue.trim() === '') return;
                 const oldName = exercise.name;
-                const newName = newValue.trim();
+                const newName = validation.value;
                 
-                // Update exercise name
                 exercise.name = newName;
                 
                 // Transfer exercise state from old name to new name
@@ -1459,32 +1533,16 @@ setProgressionType(exerciseName, type) {
             case 'startWeight':
             case 'minimumWeight':
             case 'increment':
-                const numValue = parseFloat(newValue);
-                if (isNaN(numValue) || numValue < 0) return;
-                exercise[property] = numValue;
-                break;
-                
             case 'sets':
-                const setsValue = parseInt(newValue);
-                if (isNaN(setsValue) || setsValue < 1 || setsValue > 10) return;
-                exercise[property] = setsValue;
+                exercise[property] = validation.value;
                 break;
                 
             case 'repRangeMin':
-                const minReps = parseInt(newValue);
-                if (isNaN(minReps) || minReps < 1 || minReps > exercise.repRange[1]) return;
-                exercise.repRange[0] = minReps;
+                exercise.repRange[0] = validation.value;
                 break;
                 
             case 'repRangeMax':
-                const maxReps = parseInt(newValue);
-                if (isNaN(maxReps) || maxReps < exercise.repRange[0] || maxReps > 50) return;
-                exercise.repRange[1] = maxReps;
-                break;
-                
-            case 'unit':
-                if (!newValue || newValue.trim() === '') return;
-                exercise.unit = newValue.trim();
+                exercise.repRange[1] = validation.value;
                 break;
         }
         
