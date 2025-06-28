@@ -21,10 +21,67 @@ echo "📦 Updating cache version from v$CURRENT_VERSION to v$NEW_VERSION..."
 # Update cache version in service worker
 sed -i '' "s/workout-tracker-v[0-9]*/workout-tracker-v$NEW_VERSION/" sw.js
 
+# Create detailed commit message with changelog
+echo "📝 Creating detailed commit message..."
+
+# Get list of changed files
+CHANGED_FILES=$(git diff --name-only HEAD 2>/dev/null || echo "deploy.sh")
+
+# Build features list
+FEATURES_LIST=""
+for file in $CHANGED_FILES; do
+    case "$file" in
+        app.js)
+            FEATURES_LIST="${FEATURES_LIST}- Updated application logic in app.js\n"
+            ;;
+        styles.css)
+            FEATURES_LIST="${FEATURES_LIST}- Updated styling and UI improvements in styles.css\n"
+            ;;
+        index.html)
+            FEATURES_LIST="${FEATURES_LIST}- Updated HTML structure and meta tags in index.html\n"
+            ;;
+        sw.js)
+            FEATURES_LIST="${FEATURES_LIST}- Updated service worker configuration\n"
+            ;;
+        manifest.json)
+            FEATURES_LIST="${FEATURES_LIST}- Updated PWA manifest configuration\n"
+            ;;
+        deploy.sh)
+            FEATURES_LIST="${FEATURES_LIST}- Updated deployment script\n"
+            ;;
+        *)
+            FEATURES_LIST="${FEATURES_LIST}- Updated $file\n"
+            ;;
+    esac
+done
+
+# Create the commit message
+COMMIT_MSG="PWA Update v$NEW_VERSION - Build $TIMESTAMP
+
+## Changes in this update:
+
+### Service Worker
+- Updated cache version from v$CURRENT_VERSION to v$NEW_VERSION
+- Force refresh of all cached resources
+
+### Build Info
+- Build timestamp: $TIMESTAMP
+- Automatic cache invalidation enabled
+
+### Features & Fixes
+${FEATURES_LIST}
+### Technical Details
+- Cache strategy: Cache-first with immediate update detection
+- Update mechanism: Automatic with user notification
+- iOS compatibility: Enhanced update detection for PWA
+
+---
+Deployed automatically via deploy.sh"
+
 # Commit and push changes to GitHub
 echo "📤 Committing and pushing to GitHub..."
 git add .
-git commit -m "PWA Update v$NEW_VERSION - Build $TIMESTAMP"
+git commit -m "$COMMIT_MSG"
 git push
 
 echo "✅ PWA Update Complete!"
