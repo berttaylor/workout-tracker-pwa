@@ -8,7 +8,7 @@ class WorkoutTracker {
         this.MIN_SUPPORTED_DATA_VERSION = 1;
         
         // Build timestamp for cache busting
-        this.BUILD_TIMESTAMP = '2025-06-28-16-54';
+        this.BUILD_TIMESTAMP = '2025-06-28-16-55';
         this.LAST_UPDATE_CHECK = null;
         
         // App state
@@ -709,6 +709,12 @@ setProgressionType(exerciseName, type) {
     toggleDarkMode() {
         const isDarkMode = document.body.classList.toggle('dark-mode');
         localStorage.setItem('darkMode', isDarkMode.toString());
+        
+        // Update the button text and icon immediately
+        const toggleButton = document.querySelector('.dark-mode-toggle-footer');
+        if (toggleButton) {
+            toggleButton.innerHTML = isDarkMode ? '☀️ Light Mode' : '🌙 Dark Mode';
+        }
     }
     
     loadDarkMode() {
