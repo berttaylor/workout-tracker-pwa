@@ -1055,3 +1055,120 @@ body.dark-mode .workout-options .btn-danger {
     background-color: #dc3545;
     color: white;
 }
+
+/* Edit mode styles */
+.edit-workout-name-section,
+.edit-exercises-section,
+.edit-workout-actions {
+    margin: 20px 0;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.edit-workout-name-section h3,
+.edit-exercises-section h3 {
+    margin-bottom: 10px;
+    color: #2c3e50;
+    font-size: 1.1rem;
+}
+
+.workout-name-input,
+.exercise-name-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 1rem;
+    background-color: white;
+    color: #2c3e50;
+    font-family: inherit;
+}
+
+.edit-exercise {
+    margin-bottom: 20px;
+    border: 2px dashed #e9ecef;
+}
+
+.edit-exercise .exercise-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.edit-exercise .exercise-header input {
+    flex: 1;
+    margin: 0;
+}
+
+.exercise-edit-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.edit-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.edit-field label {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 0.9rem;
+}
+
+.edit-field input,
+.edit-field select {
+    padding: 8px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    background-color: white;
+    color: #2c3e50;
+}
+
+.edit-workout-actions {
+    text-align: center;
+    background-color: #fff5f5;
+    border-color: #fed7d7;
+}
+
+/* Dark mode edit styles */
+body.dark-mode .edit-workout-name-section,
+body.dark-mode .edit-exercises-section,
+body.dark-mode .edit-workout-actions {
+    background-color: #333333;
+    border-color: #555555;
+}
+
+body.dark-mode .edit-workout-name-section h3,
+body.dark-mode .edit-exercises-section h3 {
+    color: #ffffff;
+}
+
+body.dark-mode .workout-name-input,
+body.dark-mode .exercise-name-input,
+body.dark-mode .edit-field input,
+body.dark-mode .edit-field select {
+    background-color: #444444;
+    border-color: #666666;
+    color: #e0e0e0;
+}
+
+body.dark-mode .edit-field label {
+    color: #e0e0e0;
+}
+
+body.dark-mode .edit-exercise {
+    border-color: #555555;
+}
+
+body.dark-mode .edit-workout-actions {
+    background-color: #3a1a1a;
+    border-color: #663333;
+}

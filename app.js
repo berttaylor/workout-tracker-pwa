@@ -8,7 +8,7 @@ class WorkoutTracker {
         this.MIN_SUPPORTED_DATA_VERSION = 1;
         
         // Build timestamp for cache busting
-        this.BUILD_TIMESTAMP = '2025-06-28-18-02';
+        this.BUILD_TIMESTAMP = '2025-06-28-18-04';
         this.LAST_UPDATE_CHECK = null;
         
         // App state
@@ -19,6 +19,8 @@ class WorkoutTracker {
         this.workoutLogs = [];
         this.sessionStates = {}; // Temporary states during current workout
         this.updateAvailable = false;
+        this.editMode = false; // Track if we're in edit mode
+        this.editingWorkout = null; // Track which workout we're editing
         
         this.init();
     }
@@ -804,7 +806,7 @@ setProgressionType(exerciseName, type) {
                 ${this.renderUpdateNotification()}
                 ${this.renderAppHeader()}
                 
-                ${this.renderWorkoutSelection()}
+                ${this.editMode ? this.renderEditMode() : this.renderWorkoutSelection()}
                 ${this.renderCurrentWorkout()}
                 ${this.renderQueuesInfo()}
                 ${this.currentWorkout ? '' : this.renderExportSection()}
@@ -906,14 +908,8 @@ setProgressionType(exerciseName, type) {
                     ${workout.name}
                 </button>
                 <div class="workout-options">
-                    <button class="btn-small btn-secondary" onclick="tracker.editWorkoutName('${workout.id}')" title="Edit workout name">
+                    <button class="btn-small btn-secondary" onclick="tracker.enterEditMode('${workout.id}')" title="Edit workout">
                         ✏️
-                    </button>
-                    <button class="btn-small btn-secondary" onclick="tracker.addExerciseToWorkout('${workout.id}')" title="Add exercise">
-                        +
-                    </button>
-                    <button class="btn-small btn-danger" onclick="tracker.removeWorkout('${workout.id}')" title="Remove workout">
-                        🗑️
                     </button>
                 </div>
             </div>
@@ -1487,6 +1483,132 @@ setProgressionType(exerciseName, type) {
         
         this.saveData();
         this.render();
+    }
+    
+    enterEditMode(workoutId) {
+        const workout = this.config.workouts.find(w => w.id === workoutId);
+        if (!workout) return;
+        
+        this.editMode = true;
+        this.editingWorkout = workout;
+        this.render();
+    }
+    
+    exitEditMode() {
+        this.editMode = false;
+        this.editingWorkout = null;
+        this.render();
+    }
+    
+    renderEditMode() {
+        if (!this.editingWorkout) return '';
+        
+        const workout = this.editingWorkout;
+        const activeExercises = workout.exercises.filter(e => e.active !== false);
+        
+        return `
+            <div class="workout-section">
+                <div class="workout-header">
+                    <div class="workout-name">Editing: ${workout.name}</div>
+                    <button class="btn btn-secondary" onclick="tracker.exitEditMode()">← Back</button>
+                </div>
+                
+                <div class="edit-workout-name-section">
+                    <h3>Workout Name</h3>
+                    <input type="text" class="workout-name-input" value="${workout.name}" 
+                           onchange="tracker.editWorkoutName('${workout.id}', this.value)" 
+                           placeholder="Enter workout name">
+                </div>
+                
+                <div class="edit-exercises-section">
+                    <h3>Exercises</h3>
+                    ${activeExercises.length > 0 ? `
+                        <div class="exercises">
+                            ${activeExercises.map(exercise => this.renderEditableExercise(exercise, workout.id)).join('')}
+                        </div>
+                    ` : '<p>No exercises in this workout.</p>'}
+                    
+                    <button class="btn btn-primary" onclick="tracker.addExerciseToWorkout('${workout.id}')" style="margin-top: 15px;">
+                        + Add Exercise
+                    </button>
+                </div>
+                
+                <div class="edit-workout-actions">
+                    <button class="btn btn-danger" onclick="tracker.removeWorkout('${workout.id}')">
+                        Delete Workout
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+    
+    renderEditableExercise(exercise, workoutId) {
+        return `
+            <div class="exercise edit-exercise">
+                <div class="exercise-header">
+                    <input type="text" class="exercise-name-input" value="${exercise.name}" 
+                           onchange="tracker.editExerciseProperty('${exercise.id}', 'name', this.value)" 
+                           placeholder="Exercise name">
+                    <button class="btn-small btn-danger" onclick="tracker.removeExercise('${workoutId}', '${exercise.id}')" title="Remove exercise">
+                        🗑️
+                    </button>
+                </div>
+                
+                <div class="exercise-edit-grid">
+                    <div class="edit-field">
+                        <label>Start Weight (${exercise.unit})</label>
+                        <input type="number" step="0.5" value="${exercise.startWeight}" 
+                               onchange="tracker.editExerciseProperty('${exercise.id}', 'startWeight', this.value)">
+                    </div>
+                    
+                    <div class="edit-field">
+                        <label>Min Weight (${exercise.unit})</label>
+                        <input type="number" step="0.5" value="${exercise.minimumWeight}" 
+                               onchange="tracker.editExerciseProperty('${exercise.id}', 'minimumWeight', this.value)">
+                    </div>
+                    
+                    <div class="edit-field">
+                        <label>Increment (${exercise.unit})</label>
+                        <input type="number" step="0.5" value="${exercise.increment}" 
+                               onchange="tracker.editExerciseProperty('${exercise.id}', 'increment', this.value)">
+                    </div>
+                    
+                    <div class="edit-field">
+                        <label>Min Reps</label>
+                        <input type="number" min="1" max="50" value="${exercise.repRange[0]}" 
+                               onchange="tracker.editExerciseProperty('${exercise.id}', 'repRangeMin', this.value)">
+                    </div>
+                    
+                    <div class="edit-field">
+                        <label>Max Reps</label>
+                        <input type="number" min="1" max="50" value="${exercise.repRange[1]}" 
+                               onchange="tracker.editExerciseProperty('${exercise.id}', 'repRangeMax', this.value)">
+                    </div>
+                    
+                    <div class="edit-field">
+                        <label>Sets</label>
+                        <input type="number" min="1" max="10" value="${exercise.sets}" 
+                               onchange="tracker.editExerciseProperty('${exercise.id}', 'sets', this.value)">
+                    </div>
+                    
+                    <div class="edit-field">
+                        <label>Unit</label>
+                        <input type="text" value="${exercise.unit}" 
+                               onchange="tracker.editExerciseProperty('${exercise.id}', 'unit', this.value)" 
+                               placeholder="kg, lbs, etc.">
+                    </div>
+                    
+                    <div class="edit-field">
+                        <label>Progression</label>
+                        <select onchange="tracker.setProgressionType('${exercise.name}', this.value)">
+                            <option value="rep" ${exercise.progressionType === 'rep' ? 'selected' : ''}>Rep+</option>
+                            <option value="simple" ${exercise.progressionType === 'simple' ? 'selected' : ''}>Basic</option>
+                            <option value="none" ${exercise.progressionType === 'none' ? 'selected' : ''}>Static</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        `;
     }
     
     attachEventListeners() {
