@@ -8,7 +8,7 @@ class WorkoutTracker {
         this.MIN_SUPPORTED_DATA_VERSION = 1;
         
         // Build timestamp for cache busting
-        this.BUILD_TIMESTAMP = '2025-06-28-21-57';
+        this.BUILD_TIMESTAMP = '2025-06-28-22-11';
         this.LAST_UPDATE_CHECK = null;
         
         // App state
@@ -369,12 +369,13 @@ class WorkoutTracker {
                     console.log('Migrating existing user workouts to new format');
                     this.config = this.migrateExistingWorkouts(saved);
                 } else {
-                    // No existing workouts, use defaults
-                    this.config = this.getDefaultConfig();
+                    // No existing workouts - start with empty config to trigger questionnaire
+                    console.log('Existing user with no workouts, will trigger questionnaire');
+                    this.config = { workouts: [] };
                 }
             } catch (e) {
-                console.warn('Error loading config, using defaults:', e);
-                this.config = this.getDefaultConfig();
+                console.warn('Error loading config, starting with empty config:', e);
+                this.config = { workouts: [] };
             }
         } else {
             // First time user - check if they have old workout history
@@ -383,8 +384,8 @@ class WorkoutTracker {
                 console.log('Detected existing user data, creating empty config for migration');
                 this.config = { workouts: [] };
             } else {
-                console.log('New user, using default Push/Pull/Legs setup');
-                this.config = this.getDefaultConfig();
+                console.log('Brand new user, starting with empty config to trigger questionnaire');
+                this.config = { workouts: [] };
             }
         }
     }
@@ -1366,7 +1367,10 @@ setProgressionType(exerciseName, type) {
     
     resetAllData() {
         if (confirm('Are you sure you want to reset all data? This will clear all progress and cannot be undone.')) {
+            // Clear all localStorage data
             localStorage.clear();
+            
+            // Force reload to start fresh and trigger questionnaire
             location.reload();
         }
     }
@@ -1879,11 +1883,22 @@ setProgressionType(exerciseName, type) {
     checkIntroQuestionnaire() {
         // Check if this is truly a new user (no workouts at all or empty array)
         const hasWorkouts = this.config.workouts && this.config.workouts.length > 0 && this.config.workouts.some(w => w.active !== false);
+        const hasSeenQuestionnaire = localStorage.getItem('intro_questionnaire_shown');
         
-        console.log('Checking intro questionnaire:', { hasWorkouts, workoutsLength: this.config.workouts?.length });
+        console.log('Checking intro questionnaire:', { 
+            hasWorkouts, 
+            workoutsLength: this.config.workouts?.length, 
+            hasSeenQuestionnaire,
+            config: this.config
+        });
         
-        if (!hasWorkouts) {
+        // Only show questionnaire if no workouts AND haven't seen questionnaire before
+        if (!hasWorkouts && !hasSeenQuestionnaire) {
+            console.log('Showing intro questionnaire...');
             setTimeout(() => {
+                // Mark that we've shown the questionnaire
+                localStorage.setItem('intro_questionnaire_shown', 'true');
+                
                 const addProgram = confirm('Add program?\n\nChoose OK for Push/Pull/Legs split, or Cancel to build from scratch.\n\n(Note: Workouts can be edited at any time.)');
                 if (addProgram) {
                     // Use default configuration
