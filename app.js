@@ -8,7 +8,7 @@ class WorkoutTracker {
         this.MIN_SUPPORTED_DATA_VERSION = 1;
         
         // Build timestamp for cache busting
-        this.BUILD_TIMESTAMP = '2025-06-28-21-24';
+        this.BUILD_TIMESTAMP = '2025-06-28-21-27';
         this.LAST_UPDATE_CHECK = null;
         
         // App state
@@ -1491,6 +1491,13 @@ setProgressionType(exerciseName, type) {
                     return { valid: false, error: 'Maximum reps must be between minimum reps and 50' };
                 }
                 return { valid: true, value: maxReps };
+                
+            case 'unit':
+                const validUnits = ['kg', 'lb', 'm', 'pl', 'level'];
+                if (!validUnits.includes(newValue)) {
+                    return { valid: false, error: `Invalid unit: "${newValue}". Must be one of: ${validUnits.join(', ')}` };
+                }
+                return { valid: true, value: newValue };
         }
         
         return { valid: false, error: 'Unknown property' };
@@ -1543,6 +1550,10 @@ setProgressionType(exerciseName, type) {
                 
             case 'repRangeMax':
                 exercise.repRange[1] = validation.value;
+                break;
+                
+            case 'unit':
+                exercise.unit = validation.value;
                 break;
         }
         
@@ -1658,9 +1669,13 @@ setProgressionType(exerciseName, type) {
                     
                     <div class="edit-field">
                         <label>Unit</label>
-                        <input type="text" value="${exercise.unit}" 
-                               onchange="tracker.editExerciseProperty('${exercise.id}', 'unit', this.value)" 
-                               placeholder="kg, lbs, etc.">
+                        <select onchange="tracker.editExerciseProperty('${exercise.id}', 'unit', this.value)">
+                            <option value="kg" ${exercise.unit === 'kg' ? 'selected' : ''}>kg</option>
+                            <option value="lb" ${exercise.unit === 'lb' ? 'selected' : ''}>lb</option>
+                            <option value="m" ${exercise.unit === 'm' ? 'selected' : ''}>m</option>
+                            <option value="pl" ${exercise.unit === 'pl' ? 'selected' : ''}>pl</option>
+                            <option value="level" ${exercise.unit === 'level' ? 'selected' : ''}>level</option>
+                        </select>
                     </div>
                     
                     <div class="edit-field">
