@@ -3,9 +3,13 @@
 class WorkoutTracker {
     constructor() {
         // Version information
-        this.APP_VERSION = '1.0.0';
+        this.APP_VERSION = '1.1.0';
         this.DATA_VERSION = 1;
         this.MIN_SUPPORTED_DATA_VERSION = 1;
+        
+        // Build timestamp for cache busting
+        this.BUILD_TIMESTAMP = '2025-06-28-16-27';
+        this.LAST_UPDATE_CHECK = null;
         
         // App state
         this.sessionNumber = 1;
@@ -432,7 +436,7 @@ class WorkoutTracker {
 
     registerServiceWorker() {
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js')
+            navigator.serviceWorker.register('./sw.js')
                 .then(registration => {
                     console.log('SW registered: ', registration);
                 })
@@ -868,7 +872,6 @@ setProgressionType(exerciseName, type) {
         if (diffHours < 24) return `${diffHours}h ago`;
         return `${Math.floor(diffHours / 24)}d ago`;
     }
-    }
 
     renderCurrentWorkout() {
         if (!this.currentWorkout) return '';
@@ -1187,15 +1190,4 @@ setProgressionType(exerciseName, type) {
 // Initialize the app
 const tracker = new WorkoutTracker();
 
-// Register service worker
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-            .then((registration) => {
-                console.log('SW registered: ', registration);
-            })
-            .catch((registrationError) => {
-                console.log('SW registration failed: ', registrationError);
-            });
-    });
-}
+// Service worker registration is handled in the constructor
