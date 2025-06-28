@@ -3,7 +3,7 @@
   "short_name": "gain",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#28a745",
+  "theme_color": "#ffffff",
   "description": "Multi algorithm training progression - a progressive web app for tracking workouts.",
   "start_url": "./index.html",
   "scope": "./",

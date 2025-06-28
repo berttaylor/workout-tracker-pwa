@@ -8,7 +8,7 @@ class WorkoutTracker {
         this.MIN_SUPPORTED_DATA_VERSION = 1;
         
         // Build timestamp for cache busting
-        this.BUILD_TIMESTAMP = '2025-06-28-22-11';
+        this.BUILD_TIMESTAMP = '2025-06-28-22-24';
         this.LAST_UPDATE_CHECK = null;
         
         // App state
@@ -1167,8 +1167,8 @@ setProgressionType(exerciseName, type) {
     renderExportSection() {
         return `
             <div class="export-section">
-                <h3>Backup & Restore</h3>
-                <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;">
+                <h3>Data</h3>
+                <div class="data-actions">
                     <button class="btn btn-primary" onclick="tracker.showExportData()">Export Backup</button>
                     <button class="btn btn-secondary" onclick="tracker.showImportData()">Import Backup</button>
                     <button class="btn btn-danger" onclick="tracker.resetAllData()">Reset All Data</button>
