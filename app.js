@@ -8,7 +8,7 @@ class WorkoutTracker {
         this.MIN_SUPPORTED_DATA_VERSION = 1;
         
         // Build timestamp for cache busting
-        this.BUILD_TIMESTAMP = '2025-06-28-16-55';
+        this.BUILD_TIMESTAMP = '2025-06-28-17-13';
         this.LAST_UPDATE_CHECK = null;
         
         // App state
@@ -78,151 +78,178 @@ class WorkoutTracker {
         }
     }
 
-    // Configuration with your specific exercises
+    // Generate unique ID for exercises
+    generateId() {
+        return 'ex_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    }
+    
+    generateWorkoutId() {
+        return 'wo_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    }
+
+    // Default configuration - beginner-friendly Push/Pull/Legs split
     getDefaultConfig() {
         return {
             workouts: [
                 {
-                    name: "Push + Calfs",
+                    id: 'wo_default_push',
+                    name: "Push Day",
                     exercises: [
                         {
-                            name: "Shoulder press",
-                            startWeight: 30,
-                            minimumWeight: 10,
-                            repRange: [5, 10],
-                            increment: 2.5,
-                            unit: "kg",
-                            sets: 5,
-                            progressionType: "rep"
-                        },
-                        {
-                            name: "Pectoral machine",
+                            id: 'ex_default_benchpress',
+                            name: "Bench Press",
                             startWeight: 40,
-                            minimumWeight: 15,
+                            minimumWeight: 20,
                             repRange: [5, 8],
                             increment: 2.5,
                             unit: "kg",
-                            sets: 5,
-                            progressionType: "rep"
+                            sets: 3,
+                            progressionType: "rep",
+                            active: true
                         },
                         {
-                            name: "Chest incline",
-                            startWeight: 40,
-                            minimumWeight: 15,
-                            repRange: [5, 8],
-                            increment: 2.5,
-                            unit: "kg",
-                            sets: 5,
-                            progressionType: "rep"
-                        },
-                        {
-                            name: "Tricep pulldowns",
+                            id: 'ex_default_shoulderpress',
+                            name: "Shoulder Press",
                             startWeight: 20,
-                            minimumWeight: 5,
-                            repRange: [5, 8],
-                            increment: 2.5,
-                            unit: "kg",
-                            sets: 5,
-                            progressionType: "rep"
-                        },
-                        {
-                            name: "Calf raises",
-                            startWeight: 7.5,
-                            minimumWeight: 0,
-                            repRange: [8, 10],
-                            increment: 2.5,
-                            unit: "kg",
-                            sets: 5,
-                            progressionType: "simple"
-                        },
-                        {
-                            name: "Cross trainer",
-                            startWeight: 10,
-                            repRange: [10, 15],
-                            increment: 1,
-                            unit: "m",
-                            sets: 1,
-                            progressionType: "none"
-                        }
-                    ]
-                },
-                {
-                    name: "Pull + Glutes",
-                    exercises: [
-                        {
-                            name: "Vertical traction machine",
-                            startWeight: 52.5,
-                            minimumWeight: 20,
-                            repRange: [5, 8],
-                            increment: 2.5,
-                            unit: "kg",
-                            sets: 5,
-                            progressionType: "rep"
-                        },
-                        {
-                            name: "Seated row",
-                            startWeight: 50,
-                            minimumWeight: 20,
-                            repRange: [5, 8],
-                            increment: 2.5,
-                            unit: "kg",
-                            sets: 5,
-                            progressionType: "rep"
-                        },
-                        {
-                            name: "Upper back machine",
-                            startWeight: 32.5,
                             minimumWeight: 10,
                             repRange: [5, 8],
                             increment: 2.5,
                             unit: "kg",
-                            sets: 5,
-                            progressionType: "rep"
+                            sets: 3,
+                            progressionType: "rep",
+                            active: true
                         },
                         {
-                            name: "Biceps on cable",
-                            startWeight: 25,
+                            id: 'ex_default_tricepext',
+                            name: "Tricep Extensions",
+                            startWeight: 15,
                             minimumWeight: 5,
                             repRange: [8, 10],
                             increment: 2.5,
                             unit: "kg",
-                            sets: 5,
-                            progressionType: "rep"
+                            sets: 3,
+                            progressionType: "rep",
+                            active: true
                         },
                         {
-                            name: "Hip abduction machine",
-                            startWeight: 89,
-                            minimumWeight: 40,
-                            repRange: [5, 8],
-                            increment: 2.5,
-                            unit: "kg",
-                            sets: 5,
-                            progressionType: "rep"
-                        },
-                        {
-                            name: "Cross trainer",
+                            id: 'ex_default_lateralraise',
+                            name: "Lateral Raises",
                             startWeight: 10,
                             minimumWeight: 5,
-                            repRange: [10, 15],
-                            increment: 1,
-                            unit: "m",
-                            sets: 1,
-                            progressionType: "none"
+                            repRange: [10, 12],
+                            increment: 2.5,
+                            unit: "kg",
+                            sets: 3,
+                            progressionType: "rep",
+                            active: true
                         }
                     ]
                 },
                 {
-                    name: "Cardio Day",
+                    id: 'wo_default_pull',
+                    name: "Pull Day",
                     exercises: [
                         {
-                            name: "Run or swim",
-                            startWeight: 60,
-                            minimumWeight: 30,
-                            repRange: [60, 90],
+                            id: 'ex_default_latpulldown',
+                            name: "Lat Pulldowns",
+                            startWeight: 40,
+                            minimumWeight: 20,
+                            repRange: [5, 8],
+                            increment: 2.5,
+                            unit: "kg",
+                            sets: 3,
+                            progressionType: "rep",
+                            active: true
+                        },
+                        {
+                            id: 'ex_default_seatedrow',
+                            name: "Seated Rows",
+                            startWeight: 35,
+                            minimumWeight: 20,
+                            repRange: [5, 8],
+                            increment: 2.5,
+                            unit: "kg",
+                            sets: 3,
+                            progressionType: "rep",
+                            active: true
+                        },
+                        {
+                            id: 'ex_default_bicepcurl',
+                            name: "Bicep Curls",
+                            startWeight: 15,
+                            minimumWeight: 5,
+                            repRange: [8, 10],
+                            increment: 2.5,
+                            unit: "kg",
+                            sets: 3,
+                            progressionType: "rep",
+                            active: true
+                        },
+                        {
+                            id: 'ex_default_facepull',
+                            name: "Face Pulls",
+                            startWeight: 20,
+                            minimumWeight: 10,
+                            repRange: [12, 15],
+                            increment: 2.5,
+                            unit: "kg",
+                            sets: 3,
+                            progressionType: "rep",
+                            active: true
+                        }
+                    ]
+                },
+                {
+                    id: 'wo_default_legs',
+                    name: "Legs Day",
+                    exercises: [
+                        {
+                            id: 'ex_default_squats',
+                            name: "Squats",
+                            startWeight: 40,
+                            minimumWeight: 20,
+                            repRange: [5, 8],
+                            increment: 2.5,
+                            unit: "kg",
+                            sets: 3,
+                            progressionType: "rep",
+                            active: true
+                        },
+                        {
+                            id: 'ex_default_legpress',
+                            name: "Leg Press",
+                            startWeight: 80,
+                            minimumWeight: 40,
+                            repRange: [8, 10],
                             increment: 5,
-                            unit: "m",
-                            sets: 1,
-                            progressionType: "none"
+                            unit: "kg",
+                            sets: 3,
+                            progressionType: "rep",
+                            active: true
+                        },
+                        {
+                            id: 'ex_default_legcurl',
+                            name: "Leg Curls",
+                            startWeight: 25,
+                            minimumWeight: 10,
+                            repRange: [10, 12],
+                            increment: 2.5,
+                            unit: "kg",
+                            sets: 3,
+                            progressionType: "rep",
+                            active: true
+                        },
+                        {
+                            id: 'ex_default_calfraise',
+                            name: "Calf Raises",
+                            startWeight: 20,
+                            minimumWeight: 10,
+                            repRange: [12, 15],
+                            increment: 2.5,
+                            unit: "kg",
+                            sets: 3,
+                            progressionType: "simple",
+                            active: true
                         }
                     ]
                 }
@@ -836,11 +863,14 @@ setProgressionType(exerciseName, type) {
             ${incompleteWorkout ? this.renderIncompleteWorkoutNotice(incompleteWorkout) : ''}
             <div class="workout-section">
                 <div class="actions">
-                    ${this.config.workouts.map(workout => 
+                    ${this.config.workouts.filter(w => w.active !== false).map(workout => 
                         `<button class="btn btn-primary" onclick="tracker.startWorkout('${workout.name}')">
                             ${workout.name}
                         </button>`
                     ).join('')}
+                    <button class="btn btn-secondary" onclick="tracker.addNewWorkout()" style="margin-top: 15px;">
+                        + Add Workout
+                    </button>
                 </div>
             </div>
             ${this.renderWorkoutLogs()}
@@ -1209,6 +1239,190 @@ setProgressionType(exerciseName, type) {
     updateWorkoutDate(newDate) {
         this.workoutDate = newDate;
         // No need to re-render, just update the internal state
+    }
+    
+    // === EDITING FUNCTIONALITY ===
+    
+    addNewWorkout() {
+        const workoutName = prompt('Enter workout name:');
+        if (!workoutName || workoutName.trim() === '') return;
+        
+        // Check if workout name already exists
+        if (this.config.workouts.find(w => w.name.toLowerCase() === workoutName.toLowerCase())) {
+            alert('A workout with this name already exists!');
+            return;
+        }
+        
+        const newWorkout = {
+            id: this.generateWorkoutId(),
+            name: workoutName.trim(),
+            exercises: []
+        };
+        
+        this.config.workouts.push(newWorkout);
+        this.saveData();
+        this.render();
+    }
+    
+    removeWorkout(workoutId) {
+        const workout = this.config.workouts.find(w => w.id === workoutId);
+        if (!workout) return;
+        
+        if (!confirm(`Are you sure you want to remove "${workout.name}"?\n\nThis will hide the workout but preserve your exercise history.`)) {
+            return;
+        }
+        
+        // Mark workout as inactive instead of deleting
+        workout.active = false;
+        
+        this.saveData();
+        this.render();
+    }
+    
+    editWorkoutName(workoutId) {
+        const workout = this.config.workouts.find(w => w.id === workoutId);
+        if (!workout) return;
+        
+        const newName = prompt('Enter new workout name:', workout.name);
+        if (!newName || newName.trim() === '' || newName === workout.name) return;
+        
+        // Check if new name already exists
+        if (this.config.workouts.find(w => w.id !== workoutId && w.name.toLowerCase() === newName.toLowerCase())) {
+            alert('A workout with this name already exists!');
+            return;
+        }
+        
+        workout.name = newName.trim();
+        this.saveData();
+        this.render();
+    }
+    
+    addExerciseToWorkout(workoutId) {
+        const workout = this.config.workouts.find(w => w.id === workoutId);
+        if (!workout) return;
+        
+        const exerciseName = prompt('Enter exercise name:');
+        if (!exerciseName || exerciseName.trim() === '') return;
+        
+        // Check if exercise already exists in this workout
+        if (workout.exercises.find(e => e.name.toLowerCase() === exerciseName.toLowerCase() && e.active !== false)) {
+            alert('An exercise with this name already exists in this workout!');
+            return;
+        }
+        
+        const newExercise = {
+            id: this.generateId(),
+            name: exerciseName.trim(),
+            startWeight: 20,
+            minimumWeight: 10,
+            repRange: [5, 8],
+            increment: 2.5,
+            unit: "kg",
+            sets: 3,
+            progressionType: "rep",
+            active: true
+        };
+        
+        workout.exercises.push(newExercise);
+        
+        // Initialize exercise state
+        this.exerciseStates[exerciseName.trim()] = {
+            currentWeight: newExercise.startWeight,
+            targetReps: newExercise.repRange[0],
+            failCount: 0,
+            lastSession: 0,
+            currentSet: 1,
+            completedSets: 0,
+            progressionPhase: 'reps',
+            previousWeight: newExercise.startWeight,
+            previousReps: newExercise.repRange[0],
+            lastWeightIncrease: 0
+        };
+        
+        this.saveData();
+        this.render();
+    }
+    
+    removeExercise(workoutId, exerciseId) {
+        const workout = this.config.workouts.find(w => w.id === workoutId);
+        if (!workout) return;
+        
+        const exercise = workout.exercises.find(e => e.id === exerciseId);
+        if (!exercise) return;
+        
+        if (!confirm(`Are you sure you want to remove "${exercise.name}"?\n\nThis will hide the exercise but preserve your exercise history.`)) {
+            return;
+        }
+        
+        // Mark exercise as inactive instead of deleting
+        exercise.active = false;
+        
+        this.saveData();
+        this.render();
+    }
+    
+    editExerciseProperty(exerciseId, property, newValue) {
+        let exercise = null;
+        
+        // Find the exercise across all workouts
+        for (const workout of this.config.workouts) {
+            exercise = workout.exercises.find(e => e.id === exerciseId);
+            if (exercise) break;
+        }
+        
+        if (!exercise) return;
+        
+        // Validate and convert values based on property type
+        switch (property) {
+            case 'name':
+                if (!newValue || newValue.trim() === '') return;
+                const oldName = exercise.name;
+                const newName = newValue.trim();
+                
+                // Update exercise name
+                exercise.name = newName;
+                
+                // Transfer exercise state from old name to new name
+                if (this.exerciseStates[oldName] && oldName !== newName) {
+                    this.exerciseStates[newName] = this.exerciseStates[oldName];
+                    delete this.exerciseStates[oldName];
+                }
+                break;
+                
+            case 'startWeight':
+            case 'minimumWeight':
+            case 'increment':
+                const numValue = parseFloat(newValue);
+                if (isNaN(numValue) || numValue < 0) return;
+                exercise[property] = numValue;
+                break;
+                
+            case 'sets':
+                const setsValue = parseInt(newValue);
+                if (isNaN(setsValue) || setsValue < 1 || setsValue > 10) return;
+                exercise[property] = setsValue;
+                break;
+                
+            case 'repRangeMin':
+                const minReps = parseInt(newValue);
+                if (isNaN(minReps) || minReps < 1 || minReps > exercise.repRange[1]) return;
+                exercise.repRange[0] = minReps;
+                break;
+                
+            case 'repRangeMax':
+                const maxReps = parseInt(newValue);
+                if (isNaN(maxReps) || maxReps < exercise.repRange[0] || maxReps > 50) return;
+                exercise.repRange[1] = maxReps;
+                break;
+                
+            case 'unit':
+                if (!newValue || newValue.trim() === '') return;
+                exercise.unit = newValue.trim();
+                break;
+        }
+        
+        this.saveData();
+        this.render();
     }
     
     attachEventListeners() {
