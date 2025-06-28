@@ -495,7 +495,9 @@ setProgressionType(exerciseName, type) {
     // Apply progression changes only when ending workout
     applyWorkoutProgression() {
         const changes = [];
-        const workoutDate = new Date().toLocaleDateString('en-GB', { 
+        // Use the selected workout date instead of today
+        const selectedDate = new Date(this.workoutDate);
+        const workoutDate = selectedDate.toLocaleDateString('en-GB', { 
             weekday: 'short', 
             day: 'numeric', 
             month: 'short' 
@@ -645,6 +647,9 @@ setProgressionType(exerciseName, type) {
     startWorkout(workoutName) {
         this.currentWorkout = this.config.workouts.find(w => w.name === workoutName);
         this.sessionNumber++;
+        
+        // Set default workout date to today
+        this.workoutDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
         
         // Reset sets for all exercises in this workout
         this.currentWorkout.exercises.forEach(exercise => {
@@ -875,6 +880,13 @@ setProgressionType(exerciseName, type) {
                     <button class="btn btn-secondary" onclick="tracker.backToHome()">← Back</button>
                 </div>
                 
+                <div class="workout-date-section">
+                    <label for="workoutDate" class="date-label">Workout Date:</label>
+                    <input type="date" id="workoutDate" class="date-input" 
+                           value="${this.workoutDate}" 
+                           onchange="tracker.updateWorkoutDate(this.value)">
+                </div>
+                
                 <div class="complete-all-section">
                     <button class="btn btn-primary" onclick="tracker.completeAll()">Complete All</button>
                 </div>
@@ -1047,6 +1059,7 @@ setProgressionType(exerciseName, type) {
         
         // Go back to homepage
         this.currentWorkout = null;
+        this.workoutDate = null;
         this.render();
     }
     
@@ -1061,6 +1074,7 @@ setProgressionType(exerciseName, type) {
         const incompleteWorkout = {
             workoutName: this.currentWorkout.name,
             sessionStates: { ...this.sessionStates },
+            workoutDate: this.workoutDate,
             timestamp: new Date().toISOString()
         };
         localStorage.setItem('incompleteWorkout', JSON.stringify(incompleteWorkout));
@@ -1076,6 +1090,8 @@ setProgressionType(exerciseName, type) {
         if (incomplete) {
             this.currentWorkout = this.config.workouts.find(w => w.name === incomplete.workoutName);
             this.sessionStates = incomplete.sessionStates;
+            // Restore the workout date if saved, otherwise use today
+            this.workoutDate = incomplete.workoutDate || new Date().toISOString().split('T')[0];
             localStorage.removeItem('incompleteWorkout');
             this.render();
         }
@@ -1119,6 +1135,7 @@ setProgressionType(exerciseName, type) {
         
         // End workout
         this.currentWorkout = null;
+        this.workoutDate = null;
         this.render();
     }
 
@@ -1156,6 +1173,11 @@ setProgressionType(exerciseName, type) {
         }, 100);
     }
 
+    updateWorkoutDate(newDate) {
+        this.workoutDate = newDate;
+        // No need to re-render, just update the internal state
+    }
+    
     attachEventListeners() {
         // Event listeners are handled via onclick attributes in the HTML
         // This method is kept for potential future use

@@ -99,6 +99,33 @@ h1 {
     margin-bottom: 15px;
 }
 
+.workout-date-section {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+}
+
+.date-label {
+    display: block;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+}
+
+.date-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 1rem;
+    background-color: white;
+    color: #2c3e50;
+    font-family: inherit;
+}
+
 .workout-section {
     margin-bottom: 30px;
     padding: 20px;
@@ -814,4 +841,19 @@ body.dark-mode .incomplete-workout-notice {
 body.dark-mode .incomplete-workout-notice h3,
 body.dark-mode .incomplete-workout-notice p {
     color: #ffca28;
+}
+
+body.dark-mode .workout-date-section {
+    background-color: #333333;
+    border-color: #555555;
+}
+
+body.dark-mode .date-label {
+    color: #ffffff;
+}
+
+body.dark-mode .date-input {
+    background-color: #444444;
+    border-color: #666666;
+    color: #e0e0e0;
 }
