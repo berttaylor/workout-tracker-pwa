@@ -37,11 +37,25 @@ h1 {
     margin-bottom: 30px;
 }
 
-.progress-cubed {
+.app-name {
     font-size: 2rem;
     font-weight: bold;
-    color: #3498db;
+    color: #2c3e50;
     letter-spacing: -1px;
+}
+
+.ai-highlight {
+    color: #28a745;
+}
+
+.app-tagline {
+    text-align: center;
+    color: #6c757d;
+    font-size: 0.9rem;
+    font-style: italic;
+    margin-top: -10px;
+    margin-bottom: 20px;
+    letter-spacing: 0.5px;
 }
 
 .dark-mode-toggle {
@@ -801,8 +815,16 @@ body.dark-mode h1 {
     color: #ffffff;
 }
 
-body.dark-mode .progress-cubed {
+body.dark-mode .app-name {
+    color: #ffffff;
+}
+
+body.dark-mode .ai-highlight {
     color: #ffca28;
+}
+
+body.dark-mode .app-tagline {
+    color: #b0b0b0;
 }
 
 body.dark-mode .workout-section {

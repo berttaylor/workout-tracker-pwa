@@ -1,10 +1,10 @@
 {
-  "name": "Workout Tracker",
-  "short_name": "Workout",
+  "name": "gain",
+  "short_name": "gain",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#3498db",
-  "description": "A progressive web app for tracking workouts with double progression.",
+  "theme_color": "#28a745",
+  "description": "Multi algorithm training progression - a progressive web app for tracking workouts.",
   "start_url": "./index.html",
   "scope": "./",
   "icons": [

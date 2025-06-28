@@ -8,7 +8,7 @@ class WorkoutTracker {
         this.MIN_SUPPORTED_DATA_VERSION = 1;
         
         // Build timestamp for cache busting
-        this.BUILD_TIMESTAMP = '2025-06-28-21-35';
+        this.BUILD_TIMESTAMP = '2025-06-28-21-44';
         this.LAST_UPDATE_CHECK = null;
         
         // App state
@@ -845,7 +845,8 @@ setProgressionType(exerciseName, type) {
         
         return `
             <div class="session-counter">S${this.sessionNumber}</div>
-            <h1>Progress³</h1>
+            <h1><span class="app-name">g<span class="ai-highlight">ai</span>n</span></h1>
+            <p class="app-tagline">multi algorithm training progression</p>
         `;
     }
     
@@ -857,7 +858,7 @@ setProgressionType(exerciseName, type) {
                     ${isDarkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
                 </button>
                 <div class="copyright">
-                    Copyright © 2025 Progress³. All rights reserved.
+                    Copyright © 2025 gain. All rights reserved.
                 </div>
             </div>
         `;
@@ -1672,9 +1673,6 @@ setProgressionType(exerciseName, type) {
         return `
             <div class="exercise edit-exercise">
                 <div class="exercise-header">
-                    <input type="text" class="exercise-name-input" value="${exercise.name}" 
-                           onchange="tracker.editExerciseProperty('${exercise.id}', 'name', this.value)" 
-                           placeholder="Exercise name">
                     <div class="exercise-controls">
                         <button class="btn-small btn-secondary" onclick="tracker.moveExerciseUp('${workoutId}', '${exercise.id}')" title="Move up">
                             ↑
@@ -1682,10 +1680,13 @@ setProgressionType(exerciseName, type) {
                         <button class="btn-small btn-secondary" onclick="tracker.moveExerciseDown('${workoutId}', '${exercise.id}')" title="Move down">
                             ↓
                         </button>
-                        <button class="btn-small btn-danger" onclick="tracker.removeExercise('${workoutId}', '${exercise.id}')" title="Remove exercise">
-                            🗑️
-                        </button>
                     </div>
+                    <input type="text" class="exercise-name-input" value="${exercise.name}" 
+                           onchange="tracker.editExerciseProperty('${exercise.id}', 'name', this.value)" 
+                           placeholder="Exercise name">
+                    <button class="btn-small btn-danger" onclick="tracker.removeExercise('${workoutId}', '${exercise.id}')" title="Remove exercise">
+                        🗑️
+                    </button>
                 </div>
                 
                 <div class="exercise-edit-grid">
