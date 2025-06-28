@@ -524,12 +524,12 @@ h1 {
 }
 
 .btn-primary {
-    background-color: #3498db;
+    background-color: #28a745;
     color: white;
 }
 
 .btn-primary:hover {
-    background-color: #2980b9;
+    background-color: #218838;
 }
 
 .export-section {
@@ -880,8 +880,8 @@ body.dark-mode .log-date {
 }
 
 body.dark-mode .log-workout {
-    background-color: #1e3a8a;
-    color: #93c5fd;
+    background-color: #3a3a3a;
+    color: #ffca28;
 }
 
 body.dark-mode .log-change {
