@@ -26,6 +26,9 @@ class WorkoutTracker {
         // Load and migrate data if needed
         this.loadData();
         
+        // Load dark mode preference
+        this.loadDarkMode();
+        
         // Register service worker
         this.registerServiceWorker();
         
@@ -144,7 +147,7 @@ class WorkoutTracker {
                     exercises: [
                         {
                             name: "Vertical traction machine",
-                            startWeight: 50,
+                            startWeight: 52.5,
                             minimumWeight: 20,
                             repRange: [5, 8],
                             increment: 2.5,
@@ -164,7 +167,7 @@ class WorkoutTracker {
                         },
                         {
                             name: "Upper back machine",
-                            startWeight: 30,
+                            startWeight: 32.5,
                             minimumWeight: 10,
                             repRange: [5, 8],
                             increment: 2.5,
@@ -176,7 +179,7 @@ class WorkoutTracker {
                             name: "Biceps on cable",
                             startWeight: 25,
                             minimumWeight: 5,
-                            repRange: [5, 6],
+                            repRange: [8, 10],
                             increment: 2.5,
                             unit: "kg",
                             sets: 5,
@@ -674,6 +677,18 @@ class WorkoutTracker {
         
         return JSON.stringify(exportData, null, 2);
     }
+    
+    toggleDarkMode() {
+        const isDarkMode = document.body.classList.toggle('dark-mode');
+        localStorage.setItem('darkMode', isDarkMode.toString());
+    }
+    
+    loadDarkMode() {
+        const isDarkMode = localStorage.getItem('darkMode') === 'true';
+        if (isDarkMode) {
+            document.body.classList.add('dark-mode');
+        }
+    }
 
     render() {
         const app = document.getElementById('app');
@@ -681,13 +696,14 @@ class WorkoutTracker {
         let html = `
             <div class="container">
                 ${this.renderUpdateNotification()}
-                <div class="session-counter">S${this.sessionNumber}</div>
+                ${this.renderAppHeader()}
                 
                 ${this.renderWorkoutSelection()}
                 ${this.renderCurrentWorkout()}
                 ${this.renderQueuesInfo()}
                 ${this.currentWorkout ? '' : this.renderExportSection()}
                 ${this.renderVersionInfo()}
+                ${this.currentWorkout ? '' : this.renderAppFooter()}
             </div>
         `;
         
@@ -709,6 +725,29 @@ class WorkoutTracker {
                         Later
                     </button>
                 </div>
+            </div>
+        `;
+    }
+    
+    renderAppHeader() {
+        if (this.currentWorkout) return '';
+        
+        return `
+            <div class="session-counter">S${this.sessionNumber}</div>
+            <div class="app-title">
+                <span class="progress-cubed">Progress³</span>
+                <button onclick="tracker.toggleDarkMode()" class="dark-mode-toggle">
+                    ${document.body.classList.contains('dark-mode') ? '☀️' : '🌙'}
+                </button>
+            </div>
+            <h1>Workout Tracker</h1>
+        `;
+    }
+    
+    renderAppFooter() {
+        return `
+            <div class="app-footer">
+                Copyright © 2025 Progress³. All rights reserved.
             </div>
         `;
     }
@@ -780,6 +819,10 @@ class WorkoutTracker {
                 <div class="workout-header">
                     <div class="workout-name">${this.currentWorkout.name}</div>
                     <button class="btn btn-secondary" onclick="tracker.backToHome()">← Back</button>
+                </div>
+                
+                <div class="complete-all-section">
+                    <button class="btn btn-primary" onclick="tracker.completeAll()">Complete All</button>
                 </div>
                 
                 <div class="exercises">
@@ -882,7 +925,7 @@ class WorkoutTracker {
                     <div class="metric-group">
                         <div class="metric-label">Target Reps</div>
                         <div class="metric-value reps-value ${state.targetReps > exercise.repRange[0] ? 'increased-reps' : ''}">
-                            ${state.targetReps > exercise.repRange[0] ? '⭐ ' : ''}${state.targetReps}
+                            ${state.targetReps > exercise.repRange[0] ? '↑ ' : ''}${state.targetReps}
                         </div>
                     </div>
                     ${!isFailed ? `
@@ -982,6 +1025,27 @@ class WorkoutTracker {
             localStorage.clear();
             location.reload();
         }
+    }
+
+    completeAll() {
+        if (!this.currentWorkout) return;
+        
+        // Mark all exercises as completed
+        this.currentWorkout.exercises.forEach(exercise => {
+            const totalSets = exercise.sets || 5;
+            this.sessionStates[exercise.name] = {
+                status: 'completed',
+                completedSets: totalSets,
+                currentSet: totalSets
+            };
+        });
+        
+        this.render();
+        
+        // Scroll to the bottom to show "End Workout" button
+        setTimeout(() => {
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        }, 100);
     }
 
     attachEventListeners() {
