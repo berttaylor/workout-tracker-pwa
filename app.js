@@ -8,7 +8,7 @@ class WorkoutTracker {
         this.MIN_SUPPORTED_DATA_VERSION = 1;
         
         // Build timestamp for cache busting
-        this.BUILD_TIMESTAMP = '2025-06-28-17-13';
+        this.BUILD_TIMESTAMP = '2025-06-28-17-51';
         this.LAST_UPDATE_CHECK = null;
         
         // App state
@@ -358,16 +358,61 @@ class WorkoutTracker {
         if (configData) {
             try {
                 const saved = JSON.parse(configData);
-                // Always use latest config but preserve user customizations if any
-                this.config = this.getDefaultConfig();
-                console.log('Using latest app config');
+                // If user has existing workouts, migrate them to new format
+                if (saved.workouts && saved.workouts.length > 0) {
+                    console.log('Migrating existing user workouts to new format');
+                    this.config = this.migrateExistingWorkouts(saved);
+                } else {
+                    // No existing workouts, use defaults
+                    this.config = this.getDefaultConfig();
+                }
             } catch (e) {
                 console.warn('Error loading config, using defaults:', e);
                 this.config = this.getDefaultConfig();
             }
         } else {
-            this.config = this.getDefaultConfig();
+            // First time user - check if they have old workout history
+            const hasOldHistory = localStorage.getItem('workout_history') || localStorage.getItem('user_state');
+            if (hasOldHistory) {
+                console.log('Detected existing user data, creating empty config for migration');
+                this.config = { workouts: [] };
+            } else {
+                console.log('New user, using default Push/Pull/Legs setup');
+                this.config = this.getDefaultConfig();
+            }
         }
+    }
+    
+    migrateExistingWorkouts(savedConfig) {
+        console.log('Migrating workouts:', savedConfig.workouts.map(w => w.name));
+        
+        const migratedConfig = {
+            workouts: savedConfig.workouts.map(workout => {
+                // Add IDs if missing
+                const migratedWorkout = {
+                    id: workout.id || this.generateWorkoutId(),
+                    name: workout.name,
+                    active: workout.active !== false, // Default to active unless explicitly false
+                    exercises: workout.exercises.map(exercise => ({
+                        id: exercise.id || this.generateId(),
+                        name: exercise.name,
+                        startWeight: exercise.startWeight,
+                        minimumWeight: exercise.minimumWeight,
+                        repRange: exercise.repRange,
+                        increment: exercise.increment,
+                        unit: exercise.unit || 'kg',
+                        sets: exercise.sets,
+                        progressionType: exercise.progressionType,
+                        active: exercise.active !== false // Default to active unless explicitly false
+                    }))
+                };
+                
+                return migratedWorkout;
+            })
+        };
+        
+        console.log('Migration complete. Preserved workouts:', migratedConfig.workouts.map(w => w.name));
+        return migratedConfig;
     }
     
     loadUserState() {
@@ -854,6 +899,27 @@ setProgressionType(exerciseName, type) {
         `;
     }
     
+    renderWorkoutButton(workout) {
+        return `
+            <div class="workout-button-container">
+                <button class="btn btn-primary" onclick="tracker.startWorkout('${workout.name}')">
+                    ${workout.name}
+                </button>
+                <div class="workout-options">
+                    <button class="btn-small btn-secondary" onclick="tracker.editWorkoutName('${workout.id}')" title="Edit workout name">
+                        ✏️
+                    </button>
+                    <button class="btn-small btn-secondary" onclick="tracker.addExerciseToWorkout('${workout.id}')" title="Add exercise">
+                        +
+                    </button>
+                    <button class="btn-small btn-danger" onclick="tracker.removeWorkout('${workout.id}')" title="Remove workout">
+                        🗑️
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+    
     renderWorkoutSelection() {
         if (this.currentWorkout) return '';
         
@@ -864,9 +930,7 @@ setProgressionType(exerciseName, type) {
             <div class="workout-section">
                 <div class="actions">
                     ${this.config.workouts.filter(w => w.active !== false).map(workout => 
-                        `<button class="btn btn-primary" onclick="tracker.startWorkout('${workout.name}')">
-                            ${workout.name}
-                        </button>`
+                        this.renderWorkoutButton(workout)
                     ).join('')}
                     <button class="btn btn-secondary" onclick="tracker.addNewWorkout()" style="margin-top: 15px;">
                         + Add Workout

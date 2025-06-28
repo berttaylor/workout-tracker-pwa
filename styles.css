@@ -1011,3 +1011,47 @@ body.dark-mode .progression-status-selector.status-progression {
     color: #ffca28;
     border-color: #666666;
 }
+
+/* Workout editing UI */
+.workout-button-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    gap: 10px;
+}
+
+.workout-button-container .btn {
+    flex: 1;
+    margin: 0;
+}
+
+.workout-options {
+    display: flex;
+    gap: 5px;
+    flex-shrink: 0;
+}
+
+.workout-options .btn-small {
+    padding: 6px 8px;
+    font-size: 0.75rem;
+    min-width: 30px;
+    border-radius: 6px;
+}
+
+body.dark-mode .workout-button-container .btn {
+    background-color: #3a3a3a;
+    border-color: #555555;
+    color: #e0e0e0;
+}
+
+body.dark-mode .workout-options .btn-small {
+    background-color: #555555;
+    border-color: #666666;
+    color: #e0e0e0;
+}
+
+body.dark-mode .workout-options .btn-danger {
+    background-color: #dc3545;
+    color: white;
+}
