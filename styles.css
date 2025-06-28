@@ -883,11 +883,47 @@ body.dark-mode .workout-footer {
     color: #6c757d;
     font-size: 0.8rem;
     border-top: 1px solid #e9ecef;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+}
+
+.dark-mode-toggle-footer {
+    background: linear-gradient(135deg, #6c757d, #5a6268);
+    color: white;
+    border: none;
+    border-radius: 25px;
+    padding: 12px 24px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.dark-mode-toggle-footer:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.copyright {
+    color: #6c757d;
+    font-size: 0.8rem;
 }
 
 body.dark-mode .app-footer {
     color: #b0b0b0;
     border-top-color: #555555;
+}
+
+body.dark-mode .dark-mode-toggle-footer {
+    background: linear-gradient(135deg, #ffc107, #e0a800);
+    color: #1a1a1a;
+}
+
+body.dark-mode .copyright {
+    color: #b0b0b0;
 }
 
 body.dark-mode .progression-selector {

@@ -8,7 +8,7 @@ class WorkoutTracker {
         this.MIN_SUPPORTED_DATA_VERSION = 1;
         
         // Build timestamp for cache busting
-        this.BUILD_TIMESTAMP = '2025-06-28-16-27';
+        this.BUILD_TIMESTAMP = '2025-06-28-16-40';
         this.LAST_UPDATE_CHECK = null;
         
         // App state
@@ -539,6 +539,9 @@ setProgressionType(exerciseName, type) {
             this.workoutLogs.unshift(logEntry); // Add to beginning for latest first
         }
         
+        // Move completed workout to end of list
+        this.reorderWorkouts();
+        
         // Clear session states
         this.sessionStates = {};
     }
@@ -759,20 +762,20 @@ setProgressionType(exerciseName, type) {
         
         return `
             <div class="session-counter">S${this.sessionNumber}</div>
-            <div class="app-title">
-                <span class="progress-cubed">Progress³</span>
-                <button onclick="tracker.toggleDarkMode()" class="dark-mode-toggle">
-                    ${document.body.classList.contains('dark-mode') ? '☀️' : '🌙'}
-                </button>
-            </div>
-<h1>Progress³ Workout Tracker</h1>
+            <h1>Progress³</h1>
         `;
     }
     
     renderAppFooter() {
+        const isDarkMode = document.body.classList.contains('dark-mode');
         return `
             <div class="app-footer">
-                Copyright © 2025 Progress³. All rights reserved.
+                <button onclick="tracker.toggleDarkMode()" class="dark-mode-toggle-footer">
+                    ${isDarkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
+                </button>
+                <div class="copyright">
+                    Copyright © 2025 Progress³. All rights reserved.
+                </div>
             </div>
         `;
     }
@@ -1102,6 +1105,10 @@ setProgressionType(exerciseName, type) {
     
     discardIncompleteWorkout() {
         localStorage.removeItem('incompleteWorkout');
+        // Clear any current session states
+        this.sessionStates = {};
+        this.currentWorkout = null;
+        this.workoutDate = null;
         this.render();
     }
     
@@ -1174,6 +1181,23 @@ setProgressionType(exerciseName, type) {
         setTimeout(() => {
             window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         }, 100);
+    }
+
+    reorderWorkouts() {
+        if (!this.currentWorkout) return;
+        
+        // Find the current workout in the array
+        const workoutIndex = this.config.workouts.findIndex(w => w.name === this.currentWorkout.name);
+        
+        if (workoutIndex !== -1) {
+            // Remove the completed workout from its current position
+            const [completedWorkout] = this.config.workouts.splice(workoutIndex, 1);
+            
+            // Add it to the end of the array
+            this.config.workouts.push(completedWorkout);
+            
+            console.log(`Moved "${completedWorkout.name}" to end of workout list`);
+        }
     }
 
     updateWorkoutDate(newDate) {
