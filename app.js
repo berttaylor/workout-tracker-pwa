@@ -8,7 +8,7 @@ class WorkoutTracker {
         this.MIN_SUPPORTED_DATA_VERSION = 1;
         
         // Build timestamp for cache busting
-        this.BUILD_TIMESTAMP = '2025-06-28-21-44';
+        this.BUILD_TIMESTAMP = '2025-06-28-21-57';
         this.LAST_UPDATE_CHECK = null;
         
         // App state
@@ -21,6 +21,7 @@ class WorkoutTracker {
         this.updateAvailable = false;
         this.editMode = false; // Track if we're in edit mode
         this.editingWorkout = null; // Track which workout we're editing
+        this.recentlyUpdatedWorkout = null; // Track recently updated workout for notification
         
         this.init();
     }
@@ -732,6 +733,9 @@ setProgressionType(exerciseName, type) {
         this.currentWorkout = this.config.workouts.find(w => w.name === workoutName);
         this.sessionNumber++;
         
+        // Clear recently updated notification when leaving home screen
+        this.recentlyUpdatedWorkout = null;
+        
         // Set default workout date to today
         this.workoutDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
         
@@ -773,11 +777,22 @@ setProgressionType(exerciseName, type) {
 
     exportData() {
         const exportData = {
+            appVersion: this.APP_VERSION,
+            dataVersion: this.DATA_VERSION,
+            exportTimestamp: new Date().toISOString(),
             sessionNumber: this.sessionNumber,
             exerciseStates: this.exerciseStates,
             config: this.config,
             workoutHistory: this.workoutHistory,
-            timestamp: new Date().toISOString()
+            workoutLogs: this.workoutLogs,
+            darkMode: localStorage.getItem('darkMode'),
+            metadata: {
+                totalWorkouts: this.config.workouts?.length || 0,
+                activeWorkouts: this.config.workouts?.filter(w => w.active !== false).length || 0,
+                totalExercises: this.config.workouts?.reduce((total, w) => total + (w.exercises?.length || 0), 0) || 0,
+                workoutHistoryEntries: this.workoutHistory?.length || 0,
+                workoutLogEntries: this.workoutLogs?.length || 0
+            }
         };
         
         return JSON.stringify(exportData, null, 2);
@@ -841,7 +856,7 @@ setProgressionType(exerciseName, type) {
     }
     
     renderAppHeader() {
-        if (this.currentWorkout) return '';
+        if (this.currentWorkout || this.editMode) return '';
         
         return `
             <div class="session-counter">S${this.sessionNumber}</div>
@@ -906,10 +921,12 @@ setProgressionType(exerciseName, type) {
     }
     
     renderWorkoutButton(workout) {
+        const isRecentlyUpdated = this.recentlyUpdatedWorkout === workout.id;
         return `
             <div class="workout-button-container">
                 <button class="btn btn-primary" onclick="tracker.startWorkout('${workout.name}')">
                     ${workout.name}
+                    ${isRecentlyUpdated ? '<span class="updated-badge">Updated</span>' : ''}
                 </button>
                 <div class="workout-options">
                     <button class="btn-small btn-secondary" onclick="tracker.enterEditMode('${workout.id}')" title="Edit workout">
@@ -1149,10 +1166,22 @@ setProgressionType(exerciseName, type) {
     renderExportSection() {
         return `
             <div class="export-section">
-                <h3>Export Data</h3>
-                <button class="btn btn-primary" onclick="tracker.showExportData()">Show Export Data</button>
-                <button class="btn btn-danger" onclick="tracker.resetAllData()" style="margin-left: 10px;">Reset All Data</button>
+                <h3>Backup & Restore</h3>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;">
+                    <button class="btn btn-primary" onclick="tracker.showExportData()">Export Backup</button>
+                    <button class="btn btn-secondary" onclick="tracker.showImportData()">Import Backup</button>
+                    <button class="btn btn-danger" onclick="tracker.resetAllData()">Reset All Data</button>
+                </div>
                 <div id="exportData" class="export-data" style="display: none;"></div>
+                <div id="importData" class="import-section" style="display: none;">
+                    <h4>Import Backup Data</h4>
+                    <p>Paste your backup JSON data below:</p>
+                    <textarea id="importTextarea" class="import-textarea" placeholder="Paste your exported backup data here..."></textarea>
+                    <div style="margin-top: 10px;">
+                        <button class="btn btn-primary" onclick="tracker.importData()">Import Data</button>
+                        <button class="btn btn-secondary" onclick="tracker.hideImportData()">Cancel</button>
+                    </div>
+                </div>
             </div>
         `;
     }
@@ -1253,6 +1282,86 @@ setProgressionType(exerciseName, type) {
         const exportDiv = document.getElementById('exportData');
         exportDiv.textContent = this.exportData();
         exportDiv.style.display = exportDiv.style.display === 'none' ? 'block' : 'none';
+    }
+    
+    showImportData() {
+        const importDiv = document.getElementById('importData');
+        importDiv.style.display = importDiv.style.display === 'none' ? 'block' : 'none';
+        
+        // Hide export data if open
+        const exportDiv = document.getElementById('exportData');
+        if (exportDiv.style.display === 'block') {
+            exportDiv.style.display = 'none';
+        }
+    }
+    
+    hideImportData() {
+        const importDiv = document.getElementById('importData');
+        importDiv.style.display = 'none';
+        
+        // Clear textarea
+        const textarea = document.getElementById('importTextarea');
+        if (textarea) {
+            textarea.value = '';
+        }
+    }
+    
+    importData() {
+        const textarea = document.getElementById('importTextarea');
+        if (!textarea || !textarea.value.trim()) {
+            alert('Please paste your backup data in the text area.');
+            return;
+        }
+        
+        try {
+            const importData = JSON.parse(textarea.value.trim());
+            
+            // Validate the imported data structure
+            if (!importData.config || !importData.config.workouts) {
+                throw new Error('Invalid backup data: missing workout configuration');
+            }
+            
+            // Show confirmation with import details
+            const metadata = importData.metadata || {};
+            const confirmMessage = `Import backup from ${importData.exportTimestamp ? new Date(importData.exportTimestamp).toLocaleString() : 'unknown date'}?\n\n` +
+                `This will replace all current data with:\n` +
+                `- ${metadata.activeWorkouts || 0} workouts\n` +
+                `- ${metadata.totalExercises || 0} exercises\n` +
+                `- ${metadata.workoutHistoryEntries || 0} workout history entries\n` +
+                `- ${metadata.workoutLogEntries || 0} progress log entries\n\n` +
+                `This action cannot be undone.`;
+            
+            if (!confirm(confirmMessage)) {
+                return;
+            }
+            
+            // Import all data
+            this.sessionNumber = importData.sessionNumber || 1;
+            this.exerciseStates = importData.exerciseStates || {};
+            this.config = importData.config;
+            this.workoutHistory = importData.workoutHistory || [];
+            this.workoutLogs = importData.workoutLogs || [];
+            
+            // Import dark mode preference if available
+            if (importData.darkMode !== undefined) {
+                localStorage.setItem('darkMode', importData.darkMode);
+                const isDarkMode = importData.darkMode === 'true';
+                document.body.classList.toggle('dark-mode', isDarkMode);
+            }
+            
+            // Save imported data
+            this.saveData();
+            
+            // Hide import UI and re-render
+            this.hideImportData();
+            this.render();
+            
+            alert('Backup imported successfully!');
+            
+        } catch (error) {
+            console.error('Import failed:', error);
+            alert(`Import failed: ${error.message}\n\nPlease check that you've pasted valid backup data.`);
+        }
     }
     
     resetAllData() {
@@ -1592,6 +1701,23 @@ setProgressionType(exerciseName, type) {
         }
     }
     
+    saveAndReturnHome(workoutId) {
+        // Save data first
+        this.saveData();
+        
+        // Mark this workout as recently updated for notification
+        const workout = this.config.workouts.find(w => w.id === workoutId);
+        if (workout) {
+            this.recentlyUpdatedWorkout = workout.id;
+        }
+        
+        // Exit edit mode and return to home
+        this.editMode = false;
+        this.editingWorkout = null;
+        
+        this.render();
+    }
+    
     moveExerciseUp(workoutId, exerciseId) {
         const workout = this.config.workouts.find(w => w.id === workoutId);
         if (!workout) return;
@@ -1633,8 +1759,8 @@ setProgressionType(exerciseName, type) {
                 <div class="workout-header">
                     <div class="workout-name">Editing: ${workout.name}</div>
                     <div class="workout-edit-buttons">
-                        <button class="btn btn-primary" onclick="tracker.saveAndStartWorkout('${workout.id}')" title="Save and start workout">
-                            💾 Save & Start
+                        <button class="btn btn-primary" onclick="tracker.saveAndReturnHome('${workout.id}')" title="Save changes">
+                            💾 Save
                         </button>
                         <button class="btn btn-secondary" onclick="tracker.exitEditMode()">← Back</button>
                     </div>
@@ -1751,8 +1877,10 @@ setProgressionType(exerciseName, type) {
     }
     
     checkIntroQuestionnaire() {
-        // Check if this is truly a new user (no workouts at all)
-        const hasWorkouts = this.config.workouts && this.config.workouts.some(w => w.active !== false);
+        // Check if this is truly a new user (no workouts at all or empty array)
+        const hasWorkouts = this.config.workouts && this.config.workouts.length > 0 && this.config.workouts.some(w => w.active !== false);
+        
+        console.log('Checking intro questionnaire:', { hasWorkouts, workoutsLength: this.config.workouts?.length });
         
         if (!hasWorkouts) {
             setTimeout(() => {
@@ -1760,14 +1888,16 @@ setProgressionType(exerciseName, type) {
                 if (addProgram) {
                     // Use default configuration
                     this.config = this.getDefaultConfig();
+                    console.log('User chose Push/Pull/Legs split');
                 } else {
                     // Start with an empty configuration
                     this.config = { workouts: [] };
+                    console.log('User chose to build from scratch');
                 }
                 
                 this.saveData();
                 this.render();
-            }, 500); // Small delay to ensure UI is ready
+            }, 1000); // Longer delay to ensure UI is ready
         }
     }
     

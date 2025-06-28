@@ -1243,3 +1243,64 @@ body.dark-mode .exercise-controls .btn-danger {
         flex-wrap: wrap;
     }
 }
+
+/* Updated badge for recently modified workouts */
+.updated-badge {
+    display: inline-block;
+    background-color: #28a745;
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+body.dark-mode .updated-badge {
+    background-color: #ffca28;
+    color: #1a1a1a;
+}
+
+/* Import section styles */
+.import-section {
+    margin-top: 15px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.import-section h4 {
+    margin-bottom: 10px;
+    color: #2c3e50;
+}
+
+.import-textarea {
+    width: 100%;
+    min-height: 200px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-family: monospace;
+    font-size: 0.85rem;
+    background-color: white;
+    color: #2c3e50;
+    resize: vertical;
+}
+
+body.dark-mode .import-section {
+    background-color: #333333;
+    border-color: #555555;
+}
+
+body.dark-mode .import-section h4 {
+    color: #ffffff;
+}
+
+body.dark-mode .import-textarea {
+    background-color: #444444;
+    border-color: #666666;
+    color: #e0e0e0;
+}
