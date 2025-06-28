@@ -8,7 +8,7 @@ class WorkoutTracker {
         this.MIN_SUPPORTED_DATA_VERSION = 1;
         
         // Build timestamp for cache busting
-        this.BUILD_TIMESTAMP = '2025-06-28-22-48';
+        this.BUILD_TIMESTAMP = '2025-06-28-22-53';
         this.LAST_UPDATE_CHECK = null;
         
         // App state
@@ -808,6 +808,9 @@ setProgressionType(exerciseName, type) {
         if (toggleButton) {
             toggleButton.innerHTML = isDarkMode ? '☀️ Light Mode' : '🌙 Dark Mode';
         }
+        
+        // Update status bar style for iOS
+        this.updateStatusBarStyle(isDarkMode);
     }
     
     loadDarkMode() {
@@ -815,6 +818,25 @@ setProgressionType(exerciseName, type) {
         if (isDarkMode) {
             document.body.classList.add('dark-mode');
         }
+        // Update status bar style on load
+        this.updateStatusBarStyle(isDarkMode);
+    }
+    
+    updateStatusBarStyle(isDarkMode) {
+        // Update the meta tag for iOS status bar style
+        let statusBarMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
+        if (statusBarMeta) {
+            statusBarMeta.content = isDarkMode ? 'black' : 'default';
+        }
+        
+        // Also update the theme color in the manifest dynamically
+        let themeColorMeta = document.querySelector('meta[name="theme-color"]');
+        if (!themeColorMeta) {
+            themeColorMeta = document.createElement('meta');
+            themeColorMeta.name = 'theme-color';
+            document.head.appendChild(themeColorMeta);
+        }
+        themeColorMeta.content = isDarkMode ? '#2d2d2d' : '#ffffff';
     }
 
     render() {
