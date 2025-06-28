@@ -8,7 +8,7 @@ class WorkoutTracker {
         this.MIN_SUPPORTED_DATA_VERSION = 1;
         
         // Build timestamp for cache busting
-        this.BUILD_TIMESTAMP = '2025-06-28-16-46';
+        this.BUILD_TIMESTAMP = '2025-06-28-16-51';
         this.LAST_UPDATE_CHECK = null;
         
         // App state
@@ -989,13 +989,14 @@ setProgressionType(exerciseName, type) {
                 <div class="exercise-header">
                     <div class="exercise-title">
                         <div class="exercise-name">${exercise.name}</div>
-                        <select class="progression-selector" onchange="tracker.setProgressionType('${exercise.name}', this.value)">
-                            <option value="rep" ${exercise.progressionType === 'rep' ? 'selected' : ''}>Rep+</option>
-                            <option value="simple" ${exercise.progressionType === 'simple' ? 'selected' : ''}>Basic</option>
-                            <option value="none" ${exercise.progressionType === 'none' ? 'selected' : ''}>Static</option>
+                    </div>
+                    <div class="progression-status-container">
+                        <select class="progression-status-selector ${statusInfo.class}" onchange="tracker.setProgressionType('${exercise.name}', this.value)">
+                            <option value="rep" ${exercise.progressionType === 'rep' ? 'selected' : ''}>Rep+ ${exerciseStatus === 'completed' ? '✓' : exerciseStatus === 'failed' ? '✗' : ''}</option>
+                            <option value="simple" ${exercise.progressionType === 'simple' ? 'selected' : ''}>Basic ${exerciseStatus === 'completed' ? '✓' : exerciseStatus === 'failed' ? '✗' : ''}</option>
+                            <option value="none" ${exercise.progressionType === 'none' ? 'selected' : ''}>Static ${exerciseStatus === 'completed' ? '✓' : exerciseStatus === 'failed' ? '✗' : ''}</option>
                         </select>
                     </div>
-                    <div class="exercise-status ${statusInfo.class}">${statusInfo.text}</div>
                 </div>
                 
                 <div class="exercise-metrics">
