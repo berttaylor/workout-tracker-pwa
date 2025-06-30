@@ -8,7 +8,7 @@ class WorkoutTracker {
         this.MIN_SUPPORTED_DATA_VERSION = 1;
         
         // Build timestamp for cache busting
-        this.BUILD_TIMESTAMP = '2025-06-28-22-53';
+        this.BUILD_TIMESTAMP = '2025-06-30-10-24';
         this.LAST_UPDATE_CHECK = null;
         
         // App state
@@ -1061,9 +1061,14 @@ setProgressionType(exerciseName, type) {
             currentSet = sessionState.currentSet || 1;
             completedSets = sessionState.completedSets || 0;
             exerciseStatus = sessionState.status || 'pending';
-        } else {
+        } else if (state) {
             currentSet = state.currentSet || 1;
             completedSets = state.completedSets || 0;
+            exerciseStatus = 'pending';
+        } else {
+            // Fallback for when state doesn't exist (e.g., after reset)
+            currentSet = 1;
+            completedSets = 0;
             exerciseStatus = 'pending';
         }
         
