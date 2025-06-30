@@ -8,7 +8,7 @@ class WorkoutTracker {
         this.MIN_SUPPORTED_DATA_VERSION = 1;
         
         // Build timestamp for cache busting
-        this.BUILD_TIMESTAMP = '2025-06-30-10-24';
+        this.BUILD_TIMESTAMP = '2025-06-30-10-44';
         this.LAST_UPDATE_CHECK = null;
         
         // App state
@@ -664,6 +664,21 @@ setProgressionType(exerciseName, type) {
                     changes.push(`${exercise.name}: ${oldWeight}${exercise.unit} → ${state.currentWeight}${exercise.unit} (${state.targetReps} reps)`);
                 }
                 break;
+                
+            case 'double':
+                // Double progression: increase reps until max reached, then increase weight
+                if (state.targetReps < exercise.repRange[1]) {
+                    // Still room to increase reps
+                    state.targetReps++;
+                    changes.push(`${exercise.name}: ${oldReps} → ${state.targetReps} reps`);
+                } else {
+                    // At max reps: increase weight and reset to min reps
+                    state.currentWeight += exercise.increment;
+                    state.targetReps = exercise.repRange[0];
+                    state.lastWeightIncrease = this.sessionNumber;
+                    changes.push(`${exercise.name}: ${oldWeight}${exercise.unit} → ${state.currentWeight}${exercise.unit} (reset to ${state.targetReps} reps)`);
+                }
+                break;
         }
     }
     
@@ -1094,13 +1109,20 @@ setProgressionType(exerciseName, type) {
                     class: 'progression-simple'
                 };
                 break;
-            case 'rep':
-                progressionInfo = {
-                    type: 'Rep+',
-                    description: 'Reps then weight progression',
-                    class: 'progression-rep'
-                };
-                break;
+                            case 'rep':
+                                progressionInfo = {
+                                    type: 'Rep+',
+                                    description: 'Reps then weight progression',
+                                    class: 'progression-rep'
+                                };
+                                break;
+                            case 'double':
+                                progressionInfo = {
+                                    type: 'Double',
+                                    description: 'Full rep range progression',
+                                    class: 'progression-double'
+                                };
+                                break;
         }
         
         // Always show progression type, even when complete
@@ -1137,6 +1159,7 @@ setProgressionType(exerciseName, type) {
                     <div class="progression-status-container">
                         <select class="progression-status-selector ${statusInfo.class}" onchange="tracker.setProgressionType('${exercise.name}', this.value)">
                             <option value="rep" ${exercise.progressionType === 'rep' ? 'selected' : ''}>Rep+ ${exerciseStatus === 'completed' ? '✓' : exerciseStatus === 'failed' ? '✗' : ''}</option>
+                            <option value="double" ${exercise.progressionType === 'double' ? 'selected' : ''}>Double ${exerciseStatus === 'completed' ? '✓' : exerciseStatus === 'failed' ? '✗' : ''}</option>
                             <option value="simple" ${exercise.progressionType === 'simple' ? 'selected' : ''}>Basic ${exerciseStatus === 'completed' ? '✓' : exerciseStatus === 'failed' ? '✗' : ''}</option>
                             <option value="none" ${exercise.progressionType === 'none' ? 'selected' : ''}>Static ${exerciseStatus === 'completed' ? '✓' : exerciseStatus === 'failed' ? '✗' : ''}</option>
                         </select>
@@ -1918,6 +1941,7 @@ setProgressionType(exerciseName, type) {
                         <label>Progression</label>
                         <select onchange="tracker.setProgressionType('${exercise.name}', this.value)">
                             <option value="rep" ${exercise.progressionType === 'rep' ? 'selected' : ''}>Rep+</option>
+                            <option value="double" ${exercise.progressionType === 'double' ? 'selected' : ''}>Double</option>
                             <option value="simple" ${exercise.progressionType === 'simple' ? 'selected' : ''}>Basic</option>
                             <option value="none" ${exercise.progressionType === 'none' ? 'selected' : ''}>Static</option>
                         </select>

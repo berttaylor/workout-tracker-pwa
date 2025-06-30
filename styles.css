@@ -343,6 +343,11 @@ h1 {
     color: white;
 }
 
+.progression-double {
+    background-color: #6f42c1;
+    color: white;
+}
+
 /* Exercise status */
 .exercise-status {
     font-size: 0.85rem;
