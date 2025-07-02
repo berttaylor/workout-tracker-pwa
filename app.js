@@ -8,7 +8,7 @@ class WorkoutTracker {
         this.MIN_SUPPORTED_DATA_VERSION = 1;
         
         // Build timestamp for cache busting
-        this.BUILD_TIMESTAMP = '2025-07-02-11-48';
+        this.BUILD_TIMESTAMP = '2025-07-02-11-51';
         this.LAST_UPDATE_CHECK = null;
         
         // App state
@@ -842,10 +842,19 @@ setProgressionType(exerciseName, type) {
     }
     
     loadDarkMode() {
-        const isDarkMode = localStorage.getItem('darkMode') === 'true';
+        // Default to dark mode if no preference is stored
+        const darkModePreference = localStorage.getItem('darkMode');
+        const isDarkMode = darkModePreference === null ? true : darkModePreference === 'true';
+        
         if (isDarkMode) {
             document.body.classList.add('dark-mode');
         }
+        
+        // Save the default preference if none exists
+        if (darkModePreference === null) {
+            localStorage.setItem('darkMode', 'true');
+        }
+        
         // Update status bar style on load
         this.updateStatusBarStyle(isDarkMode);
     }
