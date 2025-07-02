@@ -8,7 +8,7 @@ class WorkoutTracker {
         this.MIN_SUPPORTED_DATA_VERSION = 1;
         
         // Build timestamp for cache busting
-        this.BUILD_TIMESTAMP = '2025-06-30-10-44';
+        this.BUILD_TIMESTAMP = '2025-07-02-11-48';
         this.LAST_UPDATE_CHECK = null;
         
         // App state
@@ -758,10 +758,23 @@ setProgressionType(exerciseName, type) {
         // Reset sets for all exercises in this workout
         this.currentWorkout.exercises.forEach(exercise => {
             const state = this.exerciseStates[exercise.name];
-            if (state) {
-                state.currentSet = 1;
-                state.completedSets = 0;
-            }
+            // Ensure state is initialized
+            this.exerciseStates[exercise.name] = state || {
+                currentWeight: exercise.startWeight,
+                targetReps: exercise.repRange[0],
+                failCount: 0,
+                lastSession: 0,
+                currentSet: 1,
+                completedSets: 0,
+                progressionPhase: 'reps',
+                previousWeight: exercise.startWeight,
+                previousReps: exercise.repRange[0],
+                lastWeightIncrease: 0
+            };
+
+            // Reset state for new session
+            this.exerciseStates[exercise.name].currentSet = 1;
+            this.exerciseStates[exercise.name].completedSets = 0;
         });
         
         this.saveData();
@@ -1145,7 +1158,7 @@ setProgressionType(exerciseName, type) {
         }
         
         // Show if this is a new weight (only on first attempt at this weight)
-        const isNewWeight = state.lastWeightIncrease === this.sessionNumber;
+        const isNewWeight = state && state.lastWeightIncrease === this.sessionNumber;
         
         const isComplete = exerciseStatus === 'completed';
         const isFailed = exerciseStatus === 'failed';
